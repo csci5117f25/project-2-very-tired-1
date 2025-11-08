@@ -36,6 +36,7 @@ Which (if any) progressive web app feature(s) does your app support?
 
 ## Mockup images
 
+TrailLens is a website for tracking hikes and viewing your previous hikes. Our mockup shows all of the main pages and features. We opted for a highly extensible view and are relying on the Beufy (built on top of Bulma) component library to help us easily scale to a desktop view, which is why we did not mock the desktop view.
 ![CSCI5117 Project 2](https://github.com/user-attachments/assets/ce729ed3-7ebf-49f6-baa9-0047c8cd5e9d)
 
 ## Testing Notes
