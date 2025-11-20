@@ -7,7 +7,34 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueDevTools(), VitePWA({ registerType: 'autoUpdate' })],
+  plugins: [
+    vue(),
+    vueDevTools(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+      },
+      manifest: {
+        name: 'TrailLens',
+        short_name: 'TrailLens',
+        description: 'Tracking you hike like never before',
+        theme_color: '#ffffff', // TODO: Update this once decided upon
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
