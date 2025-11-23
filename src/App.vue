@@ -1,9 +1,3 @@
-<script setup>
-import StartHikeView from './views/StartHikeView.vue'
-</script>
-
 <template>
-  <StartHikeView></StartHikeView>
+  <router-view />
 </template>
-
-<style scoped></style>

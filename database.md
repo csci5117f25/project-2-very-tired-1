@@ -22,31 +22,19 @@
 ```json
 {
   "name": "Morning Loop",
-  "status": "in_progress",          // "in_progress" or "completed" or "cancelled"
+  "status": "in_progress",            // "in_progress" or "completed"
   "startedAt": <Timestamp>,
-  "endedAt": <Timestamp>,           // null while in_progress
-  "durationSec": 5400,              // calculated at very end
-  "distanceMeters": 8234,           // tbd when/how to be calculated
-  "elevationGainMeters": 430,       // tbd when/how to be calculated
-  "startLocation": <GeoPoint>,      // first point
-  "endLocation": <GeoPoint>,        // last point, calculated when ending
-  "notes": "Great views at the top",// could be useful if we want to a note with hikes
+  "finishedAt": <Timestamp>,          // null while in_progress
+  "durationSec": 5400,                // calculated at very end
+  "distanceMeters": 8234,             // tbd when/how to be calculated
+  "elevationGainMeters": 430,         // tbd when/how to be calculated
+  "caption": "Great views at the top",// could be useful if we want to a note with hikes
   "createdAt": <Timestamp>,
-  "updatedAt": <Timestamp>
-}
-```
-
-## Hikes Datapoints
-### Path
-`/users/{uid}/hikes/{hikeId}/trackPoints/{pointId}`
-### Data
-```json
-{
-  "timestamp": <Timestamp>,
-  "location": <GeoPoint>,
-  "altitudeMeters": 1523.4,
-  "sequence": 123,                  // for ordering of points (1st, 2nd, etc.)
-  "cumulativeDistanceMeters": 3456  // could be useful for displaying where on line
+  "trail": [{                         // ordered by trail order
+    "alt": 10,                        // altitude
+    "lat": 10.1212,
+    "long": 10.212,
+  },]
 }
 ```
 

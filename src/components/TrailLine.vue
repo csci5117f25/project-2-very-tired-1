@@ -61,13 +61,18 @@ const svgPointsString = computed(() => svgPointsArray.value.map((p) => `${p.x},$
 </script>
 <template>
   <div class="trail-wrapper">
-    <svg class="trail-svg" :viewBox="`0 0 ${width} ${height}`" :width="width" :height="height">
+    <svg
+      class="trail-svg"
+      :viewBox="`0 0 ${props.width} ${props.height}`"
+      :width="props.width"
+      :height="props.height"
+    >
       <!-- The path -->
       <polyline
         :points="svgPointsString"
         fill="none"
         stroke="#ff7300"
-        :stroke-width="strokeWidth"
+        :stroke-width="props.strokeWidth"
         stroke-linecap="round"
         stroke-linejoin="round"
       />
@@ -77,7 +82,7 @@ const svgPointsString = computed(() => svgPointsArray.value.map((p) => `${p.x},$
         v-if="svgPointsArray.length"
         :cx="svgPointsArray[0].x"
         :cy="svgPointsArray[0].y"
-        :r="markerRadius"
+        :r="props.markerRadius"
         fill="#00ff00"
         stroke="#000000"
         :stroke-width="2"
@@ -88,7 +93,7 @@ const svgPointsString = computed(() => svgPointsArray.value.map((p) => `${p.x},$
         v-if="svgPointsArray.length"
         :cx="svgPointsArray[svgPointsArray.length - 1].x"
         :cy="svgPointsArray[svgPointsArray.length - 1].y"
-        :r="markerRadius"
+        :r="props.markerRadius"
         fill="#ff0000"
         stroke="#000000"
         :stroke-width="2"
