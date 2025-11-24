@@ -188,17 +188,11 @@ watch(caption, (v) => {
 
     <section class="hike-details">
       <div class="field is-grouped is-grouped-multiline is-grouped-centered details-tags">
-        <div class="control">
-          <b-tag type="is-primary" size="is-medium">Duration: {{ formattedTime }}</b-tag>
-        </div>
-        <div class="control">
-          <b-tag type="is-info" size="is-medium">Distance: {{ distanceKm }} km</b-tag>
-        </div>
-        <div class="control">
-          <b-tag type="is-success" size="is-medium"
-            >Elevation Gain: {{ elevationGainRounded }} m</b-tag
-          >
-        </div>
+        <b-tag type="is-primary" size="is-medium">Duration: {{ formattedTime }}</b-tag>
+        <b-tag type="is-info" size="is-medium">Distance: {{ distanceKm }} km</b-tag>
+        <b-tag type="is-success" size="is-medium"
+          >Elevation Gain: {{ elevationGainRounded }} m</b-tag
+        >
       </div>
 
       <b-field label="Hike Name">
