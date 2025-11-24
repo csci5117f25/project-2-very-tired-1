@@ -41,9 +41,23 @@ const svgPointsArray = computed(() => {
   const usableWidth = props.width - props.padding * 2
   const usableHeight = props.height - props.padding * 2
 
-  // Preverse aspect ratio
-  const scale = Math.min(usableWidth / dataWidth, usableHeight / dataHeight)
-  // Center the data on
+  // Handle case where all lats or lngs are equal; If both dimensions are zero, center the single point
+  if (dataWidth === 0 && dataHeight === 0) {
+    return props.points.map(() => ({ x: props.width / 2, y: props.height / 2 }))
+  }
+
+  // Compute a safe scale depending on available dimensions
+  let scale
+  if (dataWidth === 0) {
+    scale = usableHeight / dataHeight
+  } else if (dataHeight === 0) {
+    scale = usableWidth / dataWidth
+  } else {
+    // Preserve aspect ratio
+    scale = Math.min(usableWidth / dataWidth, usableHeight / dataHeight)
+  }
+
+  // Center the scaled data within the usable area
   const scaledDataWidth = dataWidth * scale
   const scaledDataHeight = dataHeight * scale
   const extraX = (usableWidth - scaledDataWidth) / 2
@@ -57,15 +71,19 @@ const svgPointsArray = computed(() => {
 })
 
 // Turn into "x,y x,y x,y" string for <polyline>
-const svgPointsString = computed(() => svgPointsArray.value.map((p) => `${p.x},${p.y}`).join(' '))
+const svgPointsString = computed(() => {
+  if (!svgPointsArray.value.length) return ''
+  return svgPointsArray.value.map((p) => `${p.x},${p.y}`).join(' ')
+})
 </script>
 <template>
   <div class="trail-wrapper">
     <svg
       class="trail-svg"
       :viewBox="`0 0 ${props.width} ${props.height}`"
-      :width="props.width"
-      :height="props.height"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid meet"
     >
       <!-- The path -->
       <polyline
@@ -104,9 +122,12 @@ const svgPointsString = computed(() => svgPointsArray.value.map((p) => `${p.x},$
 
 <style scoped>
 .trail-wrapper {
-  display: inline-block;
+  display: block;
+  width: 100%;
 }
 .trail-svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>
