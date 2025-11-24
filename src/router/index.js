@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import StartHikeView from '@/views/StartHikeView.vue'
 import MainView from '@/views/MainView.vue'
+import PreviousHikesView from '@/views/PreviousHikesView.vue'
 
 const routes = [
   {
@@ -11,6 +12,10 @@ const routes = [
     path: '/startHike',
     component: StartHikeView,
   },
+  {
+    path: '/previousHikes',
+    component: PreviousHikesView
+  }
 ]
 
 const router = createRouter({
