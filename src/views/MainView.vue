@@ -1,12 +1,6 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
-const router = useRouter()
-
-function goStartHike() {
-  router.push('/startHike')
-}
 </script>
 
 <template>
