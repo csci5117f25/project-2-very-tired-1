@@ -70,7 +70,7 @@ async function stopHike() {
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
     })
-    router.push('/')
+    router.push('/home')
   } catch (e) {
     console.error('Failed to update hike on stop:', e)
   }
