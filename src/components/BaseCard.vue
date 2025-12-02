@@ -6,6 +6,8 @@ import router from '@/router'
 // --- Props ---
 const props = defineProps({
   link: { type: String, required: true },
+  title: { type: String, required: true },
+  source: { type: String },
   size: {
     type: String,
     default: 'full',
@@ -22,22 +24,71 @@ const goToLink = () => {
   router.push(props.link)
 }
 </script>
+
 <template>
-  <div class="wrapper has-background-primary" :style="{ width: computedWidth }" @click="goToLink">
-    <h3 class="title is-4 has-text-dark"><slot></slot></h3>
+  <div
+    class="card-wrapper has-background-primary"
+    :style="{ width: computedWidth }"
+    :data-size="size"
+    @click="goToLink"
+  >
+    <div class="card-title">
+      <h3 class="title is-4 has-text-dark">{{ title }}</h3>
+    </div>
+
+    <div class="card-icon" v-if="$slots.default">
+      <slot></slot>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.wrapper {
+.card-wrapper {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 90%;
+  height: 100%;
   border-radius: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
 }
 
-.wrapper h3 {
-  text-align: center;
+.card-title {
+  display: flex;
+  align-items: center;
+  width: 30%;
+}
+
+.card-icon::v-deep svg {
+  width: clamp(80px, 15vw, 150px);
+  height: auto;
+}
+
+.card-icon {
+  transform: translateY(10vh);
+  transition: transform 0.3s ease;
+}
+
+.card-wrapper:hover .card-icon {
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .card-wrapper[data-size='half'] .card-icon {
+    display: none;
+  }
+  .card-title {
+    width: 65%;
+  }
+  .card-icon {
+    transform: translateY(0);
+  }
+}
+
+@media (hover: none) {
+  .card-wrapper .card-icon {
+    transform: translateY(0) !important;
+  }
 }
 </style>
