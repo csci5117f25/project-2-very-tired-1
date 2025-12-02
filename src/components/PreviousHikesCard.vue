@@ -73,8 +73,8 @@ const hasTrailData = computed(() => {
       <div v-else-if="hasTrailData" class="trail-preview">
         <TrailLine
           :points="trail"
-          :width="400"
-          :height="200"
+          :width="556"
+          :height="250"
           :stroke-width="3"
           :marker-radius="5"
         />
@@ -135,12 +135,7 @@ const hasTrailData = computed(() => {
 }
 
 .trail-preview {
-  min-height: 200px;
   background-color: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
 }
 
 .image-overlay {
