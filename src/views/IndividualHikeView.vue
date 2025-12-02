@@ -1,5 +1,4 @@
 <script setup>
-import BackButton from '@/components/BackButton.vue'
 import { useDocument } from 'vuefire'
 import { doc, getDocs, collection } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
