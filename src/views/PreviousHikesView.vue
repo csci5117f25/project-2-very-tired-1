@@ -1,15 +1,14 @@
 <script setup>
 import { useCollection } from 'vuefire'
-import { collection } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
 import { useRouter } from 'vue-router'
 // import { useCurrentUser } from 'vuefire'
-import { computed } from 'vue'
+
+import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 
 const router = useRouter()
-
-// const user = useCurrentUser()
 
 const hikesQuery = computed(() => {
   // if (!user.value) return null
@@ -18,6 +17,42 @@ const hikesQuery = computed(() => {
 })
 
 const hikes = useCollection(hikesQuery)
+const hikesWithPhotos = ref([])
+
+watch(
+  hikes,
+  async (newHikes) => {
+    if (!newHikes || newHikes.length === 0) {
+      hikesWithPhotos.value = []
+      return
+    }
+
+    const hikesData = await Promise.all(
+      newHikes.map(async (hike) => {
+        try {
+          const photosSnapshot = await getDocs(
+            collection(db, 'users', 'test', 'hikes', hike.id, 'photos'),
+          )
+          const photos = photosSnapshot.docs.map((doc) => doc.data())
+
+          return {
+            ...hike,
+            photos: photos,
+          }
+        } catch (error) {
+          console.error(`Error fetching photos for hike ${hike.id}:`, error)
+          return {
+            ...hike,
+            photos: [],
+          }
+        }
+      }),
+    )
+
+    hikesWithPhotos.value = hikesData
+  },
+  { immediate: true },
+)
 
 const goBack = () => {
   router.back()
@@ -27,18 +62,26 @@ const goBack = () => {
 <template>
   <div class="page-wrapper">
     <div class="previousHikesContainer">
-      <div v-if="!hikes || hikes.length === 0" class="no-hikes">
+      <div v-if="!hikesWithPhotos || hikesWithPhotos.length === 0" class="no-hikes">
         No hikes found. Hikes can be viewed here after you complete your first hike!
       </div>
-      <PreviousHikesCard
-        v-for="hike in hikes"
-        :key="hike.id"
-        :hikeId="hike.id"
-        :datetime="hike.createdAt"
-        :distance="hike.distanceMeters"
-        :duration="hike.durationSec"
-        :backgroundImage="hike.backgroundImage"
-      />
+      <div class="columns is-multiline">
+        <div
+          v-for="hike in hikesWithPhotos"
+          :key="hike.id"
+          class="column is-12-mobile is-4-desktop"
+        >
+          <PreviousHikesCard
+            :hike-id="hike.id"
+            :name="hike.name"
+            :datetime="hike.startedAt"
+            :distance="hike.distanceMeters"
+            :duration="hike.durationSec"
+            :background-image="hike.photos?.[0]?.downloadURL"
+            :trail="hike.trail"
+          />
+        </div>
+      </div>
     </div>
 
     <b-button class="back-button" type="is-primary" @click="goBack"> ← Back </b-button>
@@ -47,9 +90,12 @@ const goBack = () => {
 
 <style scoped>
 .page-wrapper {
-  position: relative;
+  margin: auto;
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-top: 30px;
+  padding-bottom: 90px;
+  max-width: 90%;
+  align-items: center;
 }
 
 .back-button {
@@ -58,24 +104,5 @@ const goBack = () => {
   left: 1.5rem;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Mobile - single column */
-.previousHikesContainer {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 16px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Desktop - 3 columns */
-@media (min-width: 1024px) {
-  .previousHikesContainer {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    padding: 24px;
-  }
 }
 </style>
