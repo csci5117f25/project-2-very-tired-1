@@ -78,6 +78,7 @@ const hasTrailData = computed(() => {
           :stroke-width="3"
           :marker-radius="5"
         />
+        <div class="image-overlay"></div>
       </div>
 
       <div v-else class="no-image-placeholder">
@@ -110,13 +111,13 @@ const hasTrailData = computed(() => {
     transform 0.2s,
     box-shadow 0.2s;
   overflow: hidden;
-  border: 2px solid #333;
-  border-radius: 12px;
+  border: 2px solid var(--bulma-border);
+  border-radius: 15px;
 }
 
 .hike-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--bulma-text-50);
 }
 
 .card-image {
@@ -126,16 +127,13 @@ const hasTrailData = computed(() => {
 }
 
 .background-image,
-.no-image-placeholder {
+.no-image-placeholder,
+.trail-preview {
   min-height: 200px;
-  background-color: #e8e8e8;
+  background-color: var(--bulma-text-70);
   background-size: cover;
   background-position: center;
   position: relative;
-}
-
-.trail-preview {
-  background-color: #f5f5f5;
 }
 
 .image-overlay {
@@ -144,12 +142,12 @@ const hasTrailData = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
 }
 
 .card-content {
   padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: var(--bulma-text-15-soft);
 }
 
 .info-container {
@@ -159,7 +157,7 @@ const hasTrailData = computed(() => {
 .heading {
   font-size: 0.6875rem;
   text-transform: uppercase;
-  color: #666;
+  color: var(--bulma-text-40-bold);
   margin-bottom: 0.25rem;
   font-weight: 600;
 }
@@ -169,17 +167,17 @@ const hasTrailData = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  color: var(--bulma-text-70-bold);
 }
 
 .title.is-5,
 .subtitle.is-5 {
   font-size: 1.1rem;
   margin-bottom: 1 !important;
-  color: #333;
 }
 
 .subtitle.is-5 {
-  color: #666;
+  color: var(--bulma-text-40-bold);
   font-weight: normal;
 }
 
