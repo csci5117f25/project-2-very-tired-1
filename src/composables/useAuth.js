@@ -1,5 +1,5 @@
 import { useCurrentUser } from 'vuefire'
-import { signInWithGoogle } from '@/firebase_conf'
+import { signInWithGoogle, signOutFromGoogle } from '@/firebase_conf'
 
 export function useAuth() {
   const user = useCurrentUser()
@@ -8,5 +8,9 @@ export function useAuth() {
     await signInWithGoogle()
   }
 
-  return { user, signIn }
+  async function signOut() {
+    await signOutFromGoogle()
+  }
+
+  return { user, signIn, signOut }
 }
