@@ -29,26 +29,29 @@ watch(
 
     const hikesData = await Promise.all(
       newHikes.map(async (hike) => {
+        const hikeId = hike.id
+
         try {
           const photosSnapshot = await getDocs(
-            collection(db, 'users', 'test', 'hikes', hike.id, 'photos'),
+            collection(db, 'users', 'test', 'hikes', hikeId, 'photos'),
           )
           const photos = photosSnapshot.docs.map((doc) => doc.data())
 
           return {
+            id: hikeId,
             ...hike,
             photos: photos,
           }
         } catch (error) {
-          console.error(`Error fetching photos for hike ${hike.id}:`, error)
+          console.error(`Error fetching photos for hike ${hikeId}:`, error)
           return {
+            id: hikeId,
             ...hike,
             photos: [],
           }
         }
       }),
     )
-
     hikesWithPhotos.value = hikesData
   },
   { immediate: true },
@@ -72,7 +75,7 @@ const goBack = () => {
           class="column is-12-mobile is-4-desktop"
         >
           <PreviousHikesCard
-            :hike-id="hike.id"
+            :hikeId="hike.id"
             :name="hike.name"
             :datetime="hike.startedAt"
             :distance="hike.distanceMeters"
