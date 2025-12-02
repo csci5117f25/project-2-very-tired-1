@@ -5,8 +5,10 @@ import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from '@/composables/useAuth'
 
-const uid = ref('test')
+const { user } = useAuth()
+const uid = computed(() => user.value?.uid)
 
 const trail = ref([])
 const elapsed = ref(0) // seconds
@@ -70,7 +72,7 @@ async function stopHike() {
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
     })
-    router.push('/home')
+    router.push('/')
   } catch (e) {
     console.error('Failed to update hike on stop:', e)
   }
