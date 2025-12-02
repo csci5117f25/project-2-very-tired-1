@@ -2,15 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { firebaseApp } from '@/firebase_conf'
 
-import SplashView from '@/views/SplashView.vue'
 import LoginView from '@/views/LoginView.vue'
 import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
 
 const routes = [
-  { path: '/', component: SplashView, meta: { public: true } },
+  { path: '/', component: MainView },
   { path: '/login', component: LoginView, meta: { public: true } },
-  { path: '/home', component: MainView },
   { path: '/startHike', component: StartHikeView },
 ]
 

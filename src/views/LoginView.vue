@@ -8,7 +8,7 @@ const { user, signIn } = useAuth()
 const signingIn = ref(false)
 
 watchEffect(() => {
-  if (user.value) router.replace('/home')
+  if (user.value) router.replace('/')
 })
 
 async function handleGoogle() {
@@ -26,7 +26,7 @@ async function handleGoogle() {
     <div class="hero-body">
       <div class="container has-text-centered">
         <div class="login-content">
-          <div class="logo-placeholder">T L</div>
+          <img src="/logo.png" alt="Logo" class="logo-img" />
           <b-button
             class="login-button"
             icon-left="google"
@@ -52,17 +52,11 @@ async function handleGoogle() {
   padding: 2.5rem 2rem;
 }
 
-.logo-placeholder {
+.logo-img {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 2px dashed #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  letter-spacing: 0.35em;
-  color: #111;
+  object-fit: cover;
 }
 
 .login-button.button {
