@@ -13,7 +13,7 @@ const routes = [
   { path: '/login', name: 'Login', component: LoginView, meta: { public: true } },
   { path: '/startHike', name: 'StartHike', component: StartHikeView },
   { path: '/takePicture/:hikeId', name: 'TakePicture', component: TakePictureView },
-  { path: '/previousHikes', name:'PreviousHikes' ,component: PreviousHikesView },
+  { path: '/previousHikes', name: 'PreviousHikes', component: PreviousHikesView },
 ]
 
 const router = createRouter({
