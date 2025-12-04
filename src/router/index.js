@@ -5,11 +5,13 @@ import { firebaseApp } from '@/firebase_conf'
 import LoginView from '@/views/LoginView.vue'
 import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
+import PreviousHikesView from '@/views/PreviousHikesView.vue'
 
 const routes = [
   { path: '/', component: MainView },
   { path: '/login', component: LoginView, meta: { public: true } },
   { path: '/startHike', component: StartHikeView },
+  { path: '/previousHikes', component: PreviousHikesView },
 ]
 
 const router = createRouter({
