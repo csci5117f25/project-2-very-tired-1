@@ -164,7 +164,7 @@ watch(
       elevationGainMeters: elevationGainMeters.value,
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
-  { immediate: true },
+  { immediate: true, enableHighAccuracy: true },
 )
 
 watch(hikeName, (v) => {
