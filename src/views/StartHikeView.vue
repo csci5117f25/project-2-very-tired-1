@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import TakePictureModal from '@/components/TakePictureModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
@@ -17,8 +18,8 @@ const hikeId = ref(null)
 const distanceMeters = ref(0)
 const elevationGainMeters = ref(0)
 const hikeName = ref('')
-const caption = ref('')
 const router = useRouter()
+const showTakePicture = ref(false)
 
 const formattedTime = computed(() => {
   const s = Math.max(0, Math.floor(elapsed.value))
@@ -68,7 +69,6 @@ async function stopHike() {
       trail: trail.value,
       status: 'completed',
       name: hikeName.value,
-      caption: caption.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
     })
@@ -76,10 +76,6 @@ async function stopHike() {
   } catch (e) {
     console.error('Failed to update hike on stop:', e)
   }
-}
-
-function takePicture() {
-  router.push({ name: 'TakePicture', params: { hikeId: hikeId.value } })
 }
 
 onMounted(async () => {
@@ -97,7 +93,6 @@ onMounted(async () => {
       elevationGainMeters: 0,
       trail: [],
       name: hikeName.value,
-      caption: caption.value,
     })
     hikeId.value = docRef.id
     console.log('Created new hike for user', uid.value, ':', hikeId.value)
@@ -172,14 +167,6 @@ watch(hikeName, (v) => {
   const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
   updateDoc(hikeRef, { name: v }).catch((err) => console.warn('Failed updating hike name:', err))
 })
-
-watch(caption, (v) => {
-  if (!hikeId.value) return
-  const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
-  updateDoc(hikeRef, { caption: v }).catch((err) =>
-    console.warn('Failed updating hike caption:', err),
-  )
-})
 </script>
 
 <template>
@@ -201,15 +188,12 @@ watch(caption, (v) => {
         <b-input v-model="hikeName" placeholder="Enter a name for this hike" />
       </b-field>
 
-      <b-field label="Caption">
-        <b-input v-model="caption" placeholder="Write a short caption" />
-      </b-field>
-
       <div class="field is-grouped is-grouped-centered action-buttons">
         <b-button type="is-danger" @click="stopHike">Stop Hike</b-button>
-        <b-button type="is-primary" @click="takePicture">Take Picture</b-button>
+        <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
       </div>
     </section>
+    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" />
   </div>
 </template>
 
