@@ -5,11 +5,13 @@ import { firebaseApp } from '@/firebase_conf'
 import LoginView from '@/views/LoginView.vue'
 import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
+import TakePictureView from '@/views/TakePictureView.vue'
 
 const routes = [
-  { path: '/', component: MainView },
-  { path: '/login', component: LoginView, meta: { public: true } },
-  { path: '/startHike', component: StartHikeView },
+  { path: '/', name: 'Main', component: MainView },
+  { path: '/login', name: 'Login', component: LoginView, meta: { public: true } },
+  { path: '/startHike', name: 'StartHike', component: StartHikeView },
+  { path: '/takePicture/:hikeId', name: 'TakePicture', component: TakePictureView },
 ]
 
 const router = createRouter({

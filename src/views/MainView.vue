@@ -60,5 +60,4 @@ async function handleLogout() {
   justify-content: center;
   align-items: center;
 }
-
 </style>

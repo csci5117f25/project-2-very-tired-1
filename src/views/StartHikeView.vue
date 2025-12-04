@@ -79,7 +79,7 @@ async function stopHike() {
 }
 
 function takePicture() {
-  console.log('Take picture pressed (not implemented)')
+  router.push({ name: 'TakePicture', params: { hikeId: hikeId.value } })
 }
 
 onMounted(async () => {
