@@ -6,12 +6,14 @@ import LoginView from '@/views/LoginView.vue'
 import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
 import TakePictureView from '@/views/TakePictureView.vue'
+import PreviousHikesView from '@/views/PreviousHikesView.vue'
 
 const routes = [
   { path: '/', name: 'Main', component: MainView },
   { path: '/login', name: 'Login', component: LoginView, meta: { public: true } },
   { path: '/startHike', name: 'StartHike', component: StartHikeView },
   { path: '/takePicture/:hikeId', name: 'TakePicture', component: TakePictureView },
+  { path: '/previousHikes', name:'PreviousHikes' ,component: PreviousHikesView },
 ]
 
 const router = createRouter({

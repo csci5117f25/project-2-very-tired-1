@@ -3,17 +3,18 @@ import { useCollection } from 'vuefire'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
 import { useRouter } from 'vue-router'
-// import { useCurrentUser } from 'vuefire'
 
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
+import { useAuth } from '@/composables/useAuth'
+
+const { user } = useAuth()
+const uid = computed(() => user.value?.uid)
 
 const router = useRouter()
 
 const hikesQuery = computed(() => {
-  // if (!user.value) return null
-  // !!! !!! !!! USER IS HARD CODED TO THE TEST USER THIS NEEDS TO BE CHANGED ONCE AUTH IS GOOD !!! !!! !!!
-  return collection(db, 'users', 'test', 'hikes')
+  return collection(db, 'users', uid.value, 'hikes')
 })
 
 const hikes = useCollection(hikesQuery)
@@ -33,7 +34,7 @@ watch(
 
         try {
           const photosSnapshot = await getDocs(
-            collection(db, 'users', 'test', 'hikes', hikeId, 'photos'),
+            collection(db, 'users', uid.value, 'hikes', hikeId, 'photos'),
           )
           const photos = photosSnapshot.docs.map((doc) => doc.data())
 
