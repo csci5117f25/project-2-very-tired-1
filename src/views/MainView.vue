@@ -10,9 +10,7 @@ const router = useRouter()
 const { signOut } = useAuth()
 
 onMounted(() => {
-  if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
-    useGeolocation({ immediate: true, enableHighAccuracy: true })
-  }
+  useGeolocation({ immediate: true, enableHighAccuracy: true })
 })
 
 async function handleLogout() {
