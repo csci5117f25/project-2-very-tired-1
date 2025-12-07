@@ -5,8 +5,10 @@ import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from '@/composables/useAuth'
 
-const uid = ref('test')
+const { user } = useAuth()
+const uid = computed(() => user.value?.uid)
 
 const trail = ref([])
 const elapsed = ref(0) // seconds
@@ -25,6 +27,10 @@ const formattedTime = computed(() => {
   const ss = String(s % 60).padStart(2, '0')
   return `${hh}:${mm}:${ss}`
 })
+
+const distanceKm = computed(() => (distanceMeters.value / 1000).toFixed(2))
+
+const elevationGainRounded = computed(() => Math.round(elevationGainMeters.value))
 
 function startTimer() {
   timerId.value = setInterval(() => {
@@ -70,6 +76,10 @@ async function stopHike() {
   } catch (e) {
     console.error('Failed to update hike on stop:', e)
   }
+}
+
+function takePicture() {
+  console.log('Take picture pressed (not implemented)')
 }
 
 onMounted(async () => {
@@ -154,7 +164,7 @@ watch(
       elevationGainMeters: elevationGainMeters.value,
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
-  { immediate: true },
+  { immediate: true, enableHighAccuracy: true },
 )
 
 watch(hikeName, (v) => {
@@ -174,7 +184,19 @@ watch(caption, (v) => {
 
 <template>
   <div class="start-hike">
-    <div>
+    <div class="trail-top column has-text-centered">
+      <TrailLine :points="trail" class="trail-line" />
+    </div>
+
+    <section class="hike-details">
+      <div class="field is-grouped is-grouped-multiline is-grouped-centered details-tags">
+        <b-tag type="is-primary" size="is-medium">Duration: {{ formattedTime }}</b-tag>
+        <b-tag type="is-info" size="is-medium">Distance: {{ distanceKm }} km</b-tag>
+        <b-tag type="is-success" size="is-medium"
+          >Elevation Gain: {{ elevationGainRounded }} m</b-tag
+        >
+      </div>
+
       <b-field label="Hike Name">
         <b-input v-model="hikeName" placeholder="Enter a name for this hike" />
       </b-field>
@@ -182,23 +204,35 @@ watch(caption, (v) => {
       <b-field label="Caption">
         <b-input v-model="caption" placeholder="Write a short caption" />
       </b-field>
-    </div>
-    <div class="timer-controls">
-      <b-field grouped>
-        <b-button type="is-danger" @click="stopHike">Stop Hike</b-button>
-        <b-tag type="is-info" size="is-large">{{ formattedTime }}</b-tag>
-      </b-field>
-    </div>
 
-    <div class="trail-container">
-      <TrailLine :points="trail" :autoResize="true" />
-    </div>
+      <div class="field is-grouped is-grouped-centered action-buttons">
+        <b-button type="is-danger" @click="stopHike">Stop Hike</b-button>
+        <b-button type="is-primary" @click="takePicture">Take Picture</b-button>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.trail-container {
+.trail-top {
   width: 100%;
-  margin: 0 auto;
+  height: auto;
+  padding: 12px;
+}
+.trail-line {
+  display: inline-block;
+  width: 90%;
+  max-width: 600px;
+}
+.hike-details {
+  width: 100%;
+  display: block;
+  padding: 12px;
+}
+.details-tags {
+  margin-bottom: 8px;
+}
+.action-buttons {
+  margin-top: 12px;
 }
 </style>

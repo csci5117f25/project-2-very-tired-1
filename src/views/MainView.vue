@@ -1,13 +1,29 @@
 <script setup>
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
+import { useAuth } from '@/composables/useAuth'
+import { useGeolocation } from '@vueuse/core'
+
+const router = useRouter()
+const { signOut } = useAuth()
+
+onMounted(() => {
+  useGeolocation({ immediate: true, enableHighAccuracy: true })
+})
+
+async function handleLogout() {
+  await signOut()
+  router.replace('/login')
+}
 </script>
 
 <template>
   <div class="rows">
     <div class="row">
       <div class="profile-column">
-        <profile-pic :size="150" />
+        <profile-pic :size="150" style="cursor: pointer" @click="handleLogout" />
       </div>
       <base-card link="" size="half" title="Place Holder for weather"></base-card>
     </div>

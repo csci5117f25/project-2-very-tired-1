@@ -8,8 +8,6 @@
   "displayName": "Alex",
   "email": "alex@example.com",
   "photoURL": "https://...", // this might need to change based on auth
-  "createdAt": <Timestamp>,
-  "homeLocation": <GeoPoint>,   //  could be useful for the weather widget
   "settings": {} // in case we need a user-level setting
 }
 
@@ -47,7 +45,10 @@
   "storagePath": "users/uid/hikes/hikeId/photos/photoId.jpg",  // CDN dependent
   "downloadURL": "https://firebasestorage.googleapis.com/...", // CDN dependent
   "timestamp": <Timestamp>,        // when taken
-  "location": <GeoPoint>,          // where the user was
+  "location": {
+    "lat": 10.2,
+    "long": 10.2,
+  }
   "altitudeMeters": 1502,
   "description": "top of mountain",
   "createdAt": <Timestamp>
