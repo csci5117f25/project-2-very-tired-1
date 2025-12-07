@@ -8,10 +8,10 @@ import StartHikeView from '@/views/StartHikeView.vue'
 import PreviousHikesView from '@/views/PreviousHikesView.vue'
 
 const routes = [
-  { path: '/', component: MainView },
-  { path: '/login', component: LoginView, meta: { public: true } },
-  { path: '/startHike', component: StartHikeView },
-  { path: '/previousHikes', component: PreviousHikesView },
+  { path: '/', name: 'Main', component: MainView },
+  { path: '/login', name: 'Login', component: LoginView, meta: { public: true } },
+  { path: '/startHike', name: 'StartHike', component: StartHikeView },
+  { path: '/previousHikes', name: 'PreviousHikes', component: PreviousHikesView },
 ]
 
 const router = createRouter({
