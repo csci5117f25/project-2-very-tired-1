@@ -24,7 +24,7 @@ import ProfilePic from '@/components/ProfilePic.vue'
     </div>
 
     <div class="row">
-      <base-card link="" size="full" title="Calendar">
+      <base-card link="/calendar" size="full" title="Calendar">
         <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 20 20">
           <path
             fill="#000000"

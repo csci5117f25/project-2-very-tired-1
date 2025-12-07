@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import StartHikeView from '@/views/StartHikeView.vue'
 import MainView from '@/views/MainView.vue'
+import CalendarView from '@/views/CalendarView.vue'
 
 const routes = [
   {
@@ -10,6 +11,10 @@ const routes = [
   {
     path: '/startHike',
     component: StartHikeView,
+  },
+  {
+    path: '/calendar',
+    component: CalendarView,
   },
 ]
 
