@@ -122,12 +122,6 @@ const goBack = () => {
         </div>
       </div>
     </div>
-    <div
-      id="test-fixed"
-      style="position: fixed; bottom: 0; right: 0; background: red; z-index: 99999; padding: 10px"
-    >
-      TEST
-    </div>
     <b-button class="back-button" type="is-primary" @click="goBack"> ← Back </b-button>
   </div>
 </template>
