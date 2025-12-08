@@ -15,6 +15,12 @@ const props = defineProps({
   trail: Array,
 })
 
+const emit = defineEmits(['delete'])
+
+const deleteHike = () => {
+  emit('delete', props.hikeId)
+}
+
 const openHike = () => {
   router.push(`/individualHike/${props.hikeId}`)
 }
@@ -61,6 +67,7 @@ const hasTrailData = computed(() => {
 
 <template>
   <div class="card hike-card" @click="openHike">
+    <b-button class="delete-button" @click.stop="deleteHike">🗑️</b-button>
     <div class="card-image">
       <div
         v-if="backgroundImage"
@@ -204,5 +211,12 @@ const hasTrailData = computed(() => {
   .title.is-6 {
     font-size: 0.9375rem;
   }
+}
+
+.delete-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
 }
 </style>
