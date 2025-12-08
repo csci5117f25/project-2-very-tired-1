@@ -7,6 +7,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
+import BackButton from '@/components/BackButton.vue'
 
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
@@ -92,10 +93,6 @@ watch(
   },
   { immediate: true },
 )
-
-const goBack = () => {
-  router.back()
-}
 </script>
 
 <template>
@@ -122,7 +119,8 @@ const goBack = () => {
         </div>
       </div>
     </div>
-    <b-button class="back-button" type="is-primary" @click="goBack"> ← Back </b-button>
+
+    <BackButton />
   </div>
 </template>
 
@@ -134,13 +132,5 @@ const goBack = () => {
   padding-bottom: 90px;
   max-width: 90%;
   align-items: center;
-}
-
-.back-button {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 </style>
