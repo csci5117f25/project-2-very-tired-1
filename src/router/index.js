@@ -14,6 +14,12 @@ const routes = [
   { path: '/startHike', component: StartHikeView },
   { path: '/previousHikes', component: PreviousHikesView },
   {
+    path: '/previousHikes/:year/:month/:day',
+    name: 'previousHikesByDay',
+    component: PreviousHikesView,
+    props: true,
+  },
+  {
     path: '/calendar',
     component: CalendarView,
   },
