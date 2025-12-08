@@ -19,7 +19,7 @@ const uid = computed(() => user.value?.uid)
 // --- local state ---
 const year = props.year
 const month = props.month
-let hikesRef = ref([])
+const hikesRef = ref([])
 
 // --- computed: days ---
 const days = computed(() => {

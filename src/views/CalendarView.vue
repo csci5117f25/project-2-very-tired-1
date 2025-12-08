@@ -35,18 +35,29 @@ const goBack = () => {
 
     <div class="body">
       <monthly-calendar
+        class="block"
         v-for="i in 12"
         :key="year + '-' + (i - 1)"
         :year="year"
         :month="i - 1"
       ></monthly-calendar>
     </div>
-
-    <b-button class="button back-button" type="is-primary" @click="goBack"> ← Back </b-button>
   </body>
+  <b-button class="back-button" type="is-primary" @click="goBack"> ← Back </b-button>
 </template>
 
 <style scoped>
+@keyframes appear {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
 .wrapper {
   padding-bottom: 75px;
 }
@@ -54,6 +65,12 @@ const goBack = () => {
 .title-wrapper {
   align-items: center;
   justify-content: center;
+}
+
+.block {
+  animation: appear linear;
+  animation-timeline: view();
+  animation-range: entry 0% cover 15%;
 }
 
 .back-button {
