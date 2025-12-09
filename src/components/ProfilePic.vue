@@ -24,4 +24,8 @@ console.log(props.src)
   align-items: center;
   justify-content: center;
 }
+
+.avatar-img {
+  border-radius: 50%;
+}
 </style>
