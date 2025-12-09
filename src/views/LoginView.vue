@@ -26,7 +26,7 @@ async function handleGoogle() {
     <div class="hero-body">
       <div class="container has-text-centered">
         <div class="login-content">
-          <img src="/logo.png" alt="Logo" class="logo-img" />
+          <img src="/tl.svg" alt="TrailLens" class="logo-img" />
           <b-button
             class="login-button"
             icon-left="google"
@@ -53,10 +53,8 @@ async function handleGoogle() {
 }
 
 .logo-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 200px;
+  height: auto;
 }
 
 .login-button.button {
