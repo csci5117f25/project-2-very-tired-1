@@ -6,12 +6,23 @@ import LoginView from '@/views/LoginView.vue'
 import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
 import PreviousHikesView from '@/views/PreviousHikesView.vue'
+import CalendarView from '@/views/CalendarView.vue'
 
 const routes = [
   { path: '/', name: 'Main', component: MainView },
   { path: '/login', name: 'Login', component: LoginView, meta: { public: true } },
   { path: '/startHike', name: 'StartHike', component: StartHikeView },
   { path: '/previousHikes', name: 'PreviousHikes', component: PreviousHikesView },
+  {
+    path: '/previousHikes/:year/:month/:day',
+    name: 'previousHikesByDay',
+    component: PreviousHikesView,
+    props: true,
+  },
+  {
+    path: '/calendar',
+    component: CalendarView,
+  },
 ]
 
 const router = createRouter({
