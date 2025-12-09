@@ -109,10 +109,10 @@ function deletePhoto() {
   startCamera()
 }
 
-const active = computed(
-  () => props.modelValue,
-  (v) => emit('update:modelValue', v),
-)
+const active = computed({
+  get: () => props.modelValue,
+  set: (v) => emit('update:modelValue', v),
+})
 
 watch(
   () => props.modelValue,
