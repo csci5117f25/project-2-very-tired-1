@@ -26,7 +26,7 @@ async function handleGoogle() {
     <div class="hero-body">
       <div class="container has-text-centered">
         <div class="login-content">
-          <img src="/tl.svg" alt="TrailLens" class="logo-img" />
+          <img src="/logo.png" alt="TrailLens" class="logo-img" />
           <b-button
             class="login-button"
             icon-left="google"
