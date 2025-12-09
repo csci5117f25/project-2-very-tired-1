@@ -1,7 +1,8 @@
 <script setup>
 import { useCollection } from 'vuefire'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
+import { useRouter, useRoute } from 'vue-router'
 
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
@@ -11,8 +12,45 @@ import BackButton from '@/components/BackButton.vue'
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
 
+const router = useRouter()
+const route = useRoute()
+
+const paramsExist = computed(() => {
+  const { year, month, day } = route.params
+
+  return (
+    year !== undefined &&
+    month !== undefined &&
+    day !== undefined &&
+    !isNaN(Number(year)) &&
+    !isNaN(Number(month)) &&
+    !isNaN(Number(day))
+  )
+})
+
+const dateParams = computed(() => ({
+  year: Number(route.params.year),
+  month: Number(route.params.month),
+  day: Number(route.params.day),
+}))
+
+const startOfDay = computed(
+  () => new Date(dateParams.value.year, dateParams.value.month, dateParams.value.day, 0, 0, 0),
+)
+const endOfDay = computed(
+  () => new Date(dateParams.value.year, dateParams.value.month, dateParams.value.day, 23, 59, 59),
+)
+
 const hikesQuery = computed(() => {
-  return collection(db, 'users', uid.value, 'hikes')
+  if (!paramsExist.value) {
+    return collection(db, 'users', uid.value, 'hikes')
+  } else {
+    return query(
+      collection(db, 'users', uid.value, 'hikes'),
+      where('createdAt', '>=', startOfDay.value),
+      where('createdAt', '<=', endOfDay.value),
+    )
+  }
 })
 
 const hikes = useCollection(hikesQuery)
