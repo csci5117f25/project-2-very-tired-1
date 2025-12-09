@@ -1,9 +1,8 @@
 <script setup>
 import { useCollection } from 'vuefire'
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { collection, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
 import { useRouter, useRoute } from 'vue-router'
-
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -55,6 +54,14 @@ const hikesQuery = computed(() => {
 
 const hikes = useCollection(hikesQuery)
 const hikesWithPhotos = ref([])
+
+async function handleDeleteHike(hikeId) {
+  if (window.confirm('Are you sure you want to delete this hike? This action cannot be undone.')) {
+    const hikeDocRef = doc(db, 'users', uid.value, 'hikes', hikeId)
+    await deleteDoc(hikeDocRef)
+    hikesWithPhotos.value = hikesWithPhotos.value.filter((hike) => hike.id !== hikeId)
+  }
+}
 
 watch(
   hikes,
@@ -115,6 +122,7 @@ watch(
             :duration="hike.durationSec"
             :background-image="hike.photos?.[0]?.downloadURL"
             :trail="hike.trail"
+            @delete="handleDeleteHike"
           />
         </div>
       </div>
