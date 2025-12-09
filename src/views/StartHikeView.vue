@@ -125,7 +125,16 @@ onBeforeUnmount(() => {
   stopTimer()
 })
 
-const { coords } = useGeolocation()
+// Use GPS hardware for high accuracy (5-15m) instead of WiFi/cell towers (30-100m+)
+const { coords } = useGeolocation({
+  enableHighAccuracy: true, // Forces GPS hardware usage
+  maximumAge: 0, // Always get fresh position, no caching
+  timeout: 30000, // Allow up to 30s for GPS lock
+})
+
+// Accuracy thresholds in meters - reject readings above these
+const ACCURACY_THRESHOLD = 20 // Horizontal (lat/lng)
+const ALTITUDE_ACCURACY_THRESHOLD = 30 // Vertical (elevation) - GPS altitude is less precise
 
 watch(
   coords,
@@ -137,6 +146,12 @@ watch(
       c.latitude == Infinity ||
       c.longitude == Infinity
     ) {
+      return
+    }
+
+    // Filter out low-accuracy readings (WiFi/cell tower triangulation)
+    if (typeof c.accuracy === 'number' && c.accuracy > ACCURACY_THRESHOLD) {
+      console.log(`Skipping low-accuracy reading: ${c.accuracy}m (threshold: ${ACCURACY_THRESHOLD}m)`)
       return
     }
 
@@ -165,8 +180,10 @@ watch(
       distanceMeters.value += added
     }
 
-    // Update elevation gain when a new point is added
-    if (prev && typeof prev.alt === 'number' && typeof c.altitude === 'number') {
+    // Update elevation gain when a new point is added (only if altitude accuracy is good)
+    const hasGoodAltitudeAccuracy =
+      typeof c.altitudeAccuracy === 'number' && c.altitudeAccuracy <= ALTITUDE_ACCURACY_THRESHOLD
+    if (prev && typeof prev.alt === 'number' && typeof c.altitude === 'number' && hasGoodAltitudeAccuracy) {
       const deltaAlt = c.altitude - prev.alt
       if (deltaAlt > 0) elevationGainMeters.value += deltaAlt
     }
@@ -180,7 +197,7 @@ watch(
       lastUpdatedAt: serverTimestamp(),
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
-  { immediate: true, enableHighAccuracy: true },
+  { immediate: true },
 )
 
 watch(hikeName, (v) => {
