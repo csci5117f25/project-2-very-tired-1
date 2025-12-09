@@ -185,11 +185,13 @@ watch(hikeName, (v) => {
       </div>
 
       <b-field label="Hike Name">
-        <b-input v-model="hikeName" placeholder="Enter a name for this hike" />
+        <b-input v-model="hikeName" placeholder="Enter a name for this hike" required />
       </b-field>
 
       <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button type="is-danger" @click="stopHike">Stop Hike</b-button>
+        <b-button type="is-danger" @click="stopHike" :disabled="!hikeName.trim()"
+          >Stop Hike</b-button
+        >
         <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
       </div>
     </section>
