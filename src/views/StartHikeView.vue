@@ -7,6 +7,7 @@ import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
 import { useAuth } from '@/composables/useAuth'
+import { getInProgressHike } from '@/composables/getInProgressHike'
 
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
@@ -79,26 +80,45 @@ async function stopHike() {
 }
 
 onMounted(async () => {
-  startTimer()
+  const existingHike = await getInProgressHike(uid.value)
 
-  // Create new hike in database
-  try {
-    const col = collection(db, 'users', uid.value, 'hikes')
-    const docRef = await addDoc(col, {
-      createdAt: serverTimestamp(),
-      startedAt: serverTimestamp(),
-      status: 'in_progress',
-      durationSec: 0,
-      distanceMeters: 0,
-      elevationGainMeters: 0,
-      trail: [],
-      name: hikeName.value,
-    })
-    hikeId.value = docRef.id
-    console.log('Created new hike for user', uid.value, ':', hikeId.value)
-  } catch (e) {
-    console.error('Failed to create hike:', e)
+  if (existingHike) {
+    hikeId.value = existingHike.id
+    trail.value = existingHike.trail || []
+    elapsed.value = existingHike.durationSec || 0
+    distanceMeters.value = existingHike.distanceMeters || 0
+    elevationGainMeters.value = existingHike.elevationGainMeters || 0
+    hikeName.value = existingHike.name || ''
+    console.log('Loaded in-progress hike:', hikeId.value)
+    if (existingHike.lastUpdatedAt) {
+      const now = new Date()
+      const lastUpdated = existingHike.lastUpdatedAt.toDate()
+      const diffSeconds = Math.floor((now - lastUpdated) / 1000)
+      elapsed.value += diffSeconds
+    }
+  } else {
+    // Create new hike in database
+    try {
+      const col = collection(db, 'users', uid.value, 'hikes')
+      const docRef = await addDoc(col, {
+        createdAt: serverTimestamp(),
+        startedAt: serverTimestamp(),
+        status: 'in_progress',
+        durationSec: 0,
+        distanceMeters: 0,
+        elevationGainMeters: 0,
+        trail: [],
+        name: hikeName.value,
+        lastUpdatedAt: serverTimestamp(),
+      })
+      hikeId.value = docRef.id
+      console.log('Created new hike for user', uid.value, ':', hikeId.value)
+    } catch (e) {
+      console.error('Failed to create hike:', e)
+    }
   }
+
+  startTimer()
 })
 
 onBeforeUnmount(() => {
@@ -157,6 +177,7 @@ watch(
       durationSec: elapsed.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
+      lastUpdatedAt: serverTimestamp(),
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
   { immediate: true, enableHighAccuracy: true },
