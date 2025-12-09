@@ -2,7 +2,7 @@
 import { useCollection } from 'vuefire'
 import { collection, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -11,7 +11,6 @@ import BackButton from '@/components/BackButton.vue'
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
 
-const router = useRouter()
 const route = useRoute()
 
 const paramsExist = computed(() => {
