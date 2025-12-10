@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div v-else class="preview-container">
+      <div v-else>
         <img class="photo-frame" :src="previewUrl" alt="Preview" />
 
         <b-input
