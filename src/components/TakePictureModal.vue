@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
 .photo-frame {
   aspect-ratio: 9 / 16;
   width: 100%;
-  max-height: 65vh;
+  max-height: 60vh;
   object-fit: cover;
   border-radius: 10px;
   display: block;
