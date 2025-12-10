@@ -6,12 +6,13 @@ const props = defineProps({
   size: { type: Number, default: 150 },
 })
 
-const srcToUse = props.src || '/pwa-512x512.png'
+const srcToUse = props.src
+console.log(props.src)
 </script>
 
 <template>
   <div class="avatar-wrapper" :style="{ width: size + 'px', height: size + 'px' }">
-    <img :src="srcToUse" :alt="alt" class="avatar-img" />
+    <img :src="srcToUse" :alt="alt" class="avatar-img" referrerpolicy="no-referrer" />
   </div>
 </template>
 
@@ -22,5 +23,9 @@ const srcToUse = props.src || '/pwa-512x512.png'
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.avatar-img {
+  border-radius: 50%;
 }
 </style>

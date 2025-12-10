@@ -15,7 +15,7 @@
     "generate-pwa-assets": "pwa-assets-generator"
   },
   "dependencies": {
-    "@vueuse/core": "^14.0.0",
+    "@vueuse/core": "^14.1.0",
     "buefy": "^3.0.3",
     "firebase": "^12.5.0",
     "vue": "^3.5.22",

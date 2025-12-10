@@ -6,7 +6,7 @@ CSCI 5117, Fall 2025, [assignment description](https://canvas.umn.edu/courses/51
 
 * Team Name: Very Tired
 * App Name: TrailLens
-* App Link: <https://TODO.com/>
+* App Link: <https://very-tired-project-2.web.app/>
 * LucidSpark: <https://lucid.app/lucidspark/efbdc8f9-d48d-4787-b2c0-7fa831dff212/edit?invitationId=inv_b3eeaf56-86ec-49b5-be63-04101f93399b>
 
 ### Students

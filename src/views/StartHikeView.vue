@@ -1,12 +1,16 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import TakePictureModal from '@/components/TakePictureModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from '@/composables/useAuth'
+import { getInProgressHike } from '@/composables/getInProgressHike'
 
-const uid = ref('test')
+const { user } = useAuth()
+const uid = computed(() => user.value?.uid)
 
 const trail = ref([])
 const elapsed = ref(0) // seconds
@@ -15,8 +19,8 @@ const hikeId = ref(null)
 const distanceMeters = ref(0)
 const elevationGainMeters = ref(0)
 const hikeName = ref('')
-const caption = ref('')
 const router = useRouter()
+const showTakePicture = ref(false)
 
 const formattedTime = computed(() => {
   const s = Math.max(0, Math.floor(elapsed.value))
@@ -66,7 +70,6 @@ async function stopHike() {
       trail: trail.value,
       status: 'completed',
       name: hikeName.value,
-      caption: caption.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
     })
@@ -76,32 +79,46 @@ async function stopHike() {
   }
 }
 
-function takePicture() {
-  console.log('Take picture pressed (not implemented)')
-}
-
 onMounted(async () => {
-  startTimer()
+  const existingHike = await getInProgressHike(uid.value)
 
-  // Create new hike in database
-  try {
-    const col = collection(db, 'users', uid.value, 'hikes')
-    const docRef = await addDoc(col, {
-      createdAt: serverTimestamp(),
-      startedAt: serverTimestamp(),
-      status: 'in_progress',
-      durationSec: 0,
-      distanceMeters: 0,
-      elevationGainMeters: 0,
-      trail: [],
-      name: hikeName.value,
-      caption: caption.value,
-    })
-    hikeId.value = docRef.id
-    console.log('Created new hike for user', uid.value, ':', hikeId.value)
-  } catch (e) {
-    console.error('Failed to create hike:', e)
+  if (existingHike) {
+    hikeId.value = existingHike.id
+    trail.value = existingHike.trail || []
+    elapsed.value = existingHike.durationSec || 0
+    distanceMeters.value = existingHike.distanceMeters || 0
+    elevationGainMeters.value = existingHike.elevationGainMeters || 0
+    hikeName.value = existingHike.name || ''
+    console.log('Loaded in-progress hike:', hikeId.value)
+    if (existingHike.lastUpdatedAt) {
+      const now = new Date()
+      const lastUpdated = existingHike.lastUpdatedAt.toDate()
+      const diffSeconds = Math.floor((now - lastUpdated) / 1000)
+      elapsed.value += diffSeconds
+    }
+  } else {
+    // Create new hike in database
+    try {
+      const col = collection(db, 'users', uid.value, 'hikes')
+      const docRef = await addDoc(col, {
+        createdAt: serverTimestamp(),
+        startedAt: serverTimestamp(),
+        status: 'in_progress',
+        durationSec: 0,
+        distanceMeters: 0,
+        elevationGainMeters: 0,
+        trail: [],
+        name: hikeName.value,
+        lastUpdatedAt: serverTimestamp(),
+      })
+      hikeId.value = docRef.id
+      console.log('Created new hike for user', uid.value, ':', hikeId.value)
+    } catch (e) {
+      console.error('Failed to create hike:', e)
+    }
   }
+
+  startTimer()
 })
 
 onBeforeUnmount(() => {
@@ -160,23 +177,16 @@ watch(
       durationSec: elapsed.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
+      lastUpdatedAt: serverTimestamp(),
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
-  { immediate: true },
+  { immediate: true, enableHighAccuracy: true },
 )
 
 watch(hikeName, (v) => {
   if (!hikeId.value) return
   const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
   updateDoc(hikeRef, { name: v }).catch((err) => console.warn('Failed updating hike name:', err))
-})
-
-watch(caption, (v) => {
-  if (!hikeId.value) return
-  const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
-  updateDoc(hikeRef, { caption: v }).catch((err) =>
-    console.warn('Failed updating hike caption:', err),
-  )
 })
 </script>
 
@@ -196,18 +206,17 @@ watch(caption, (v) => {
       </div>
 
       <b-field label="Hike Name">
-        <b-input v-model="hikeName" placeholder="Enter a name for this hike" />
-      </b-field>
-
-      <b-field label="Caption">
-        <b-input v-model="caption" placeholder="Write a short caption" />
+        <b-input v-model="hikeName" placeholder="Enter a name for this hike" required />
       </b-field>
 
       <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button type="is-danger" @click="stopHike">Stop Hike</b-button>
-        <b-button type="is-primary" @click="takePicture">Take Picture</b-button>
+        <b-button type="is-danger" @click="stopHike" :disabled="!hikeName.trim()"
+          >Stop Hike</b-button
+        >
+        <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
       </div>
     </section>
+    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" />
   </div>
 </template>
 
