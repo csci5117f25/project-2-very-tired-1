@@ -145,31 +145,27 @@ onBeforeUnmount(() => {
     close-button-aria-label="Close"
     aria-modal
   >
-    <section class="modal-card-body">
+    <section>
       <div v-if="isCapturing" class="camera-container">
-        <div class="preview-wrapper">
-          <video ref="videoEl" class="photo-frame" autoplay playsinline muted></video>
+        <video ref="videoEl" class="photo-frame" autoplay playsinline muted></video>
 
-          <div class="buttons mt-2 is-centered">
-            <b-button type="is-primary" @click="capture">Capture</b-button>
-          </div>
+        <div class="buttons mt-2 is-centered">
+          <b-button type="is-primary" @click="capture">Capture</b-button>
         </div>
       </div>
 
       <div v-else class="preview-container">
-        <div class="preview-wrapper">
-          <img class="photo-frame" :src="previewUrl" alt="Preview" />
+        <img class="photo-frame" :src="previewUrl" alt="Preview" />
 
-          <b-input
-            class="is-fullwidth my-2"
-            v-model="description"
-            placeholder="Add a short description"
-          />
+        <b-input
+          class="is-fullwidth my-2"
+          v-model="description"
+          placeholder="Add a short description"
+        />
 
-          <div class="buttons is-centered modal-controls">
-            <b-button type="is-success" :loading="isUploading" @click="savePhoto">Save</b-button>
-            <b-button type="is-danger" @click="deletePhoto">Delete</b-button>
-          </div>
+        <div class="buttons is-centered modal-controls">
+          <b-button type="is-success" :loading="isUploading" @click="savePhoto">Save</b-button>
+          <b-button type="is-danger" @click="deletePhoto">Delete</b-button>
         </div>
       </div>
 
@@ -179,40 +175,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.camera-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .photo-frame {
-  aspect-ratio: 3 / 4;
+  padding: 5px;
+  aspect-ratio: 9 / 16;
   width: 100%;
   max-height: 70vh;
-  background: #000;
   object-fit: cover;
   border-radius: 10px;
   display: block;
-}
-
-::deep .modal-card {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.preview-wrapper {
-  width: min(90vw, 70vmin);
-  flex-direction: column;
-}
-
-.preview-wrapper .field,
-.preview-wrapper .modal-controls {
-  width: 100%;
 }
 </style>
