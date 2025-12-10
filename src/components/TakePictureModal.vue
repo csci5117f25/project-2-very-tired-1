@@ -23,13 +23,14 @@ const previewUrl = ref(null)
 const isCapturing = ref(true)
 const isUploading = ref(false)
 const description = ref('')
+const currentFacingMode = ref('environment')
 
 const { coords } = useGeolocation()
 
 async function startCamera() {
   isCapturing.value = true
   const s = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'environment' },
+    video: { facingMode: currentFacingMode.value },
     audio: false,
   })
   stream.value = s
@@ -38,6 +39,11 @@ async function startCamera() {
 
 function stopCamera() {
   stream.value = null
+}
+
+function switchCamera() {
+  currentFacingMode.value = currentFacingMode.value === 'environment' ? 'user' : 'environment'
+  startCamera()
 }
 
 function capture() {
@@ -146,7 +152,24 @@ onBeforeUnmount(() => {
     aria-modal
   >
     <section class="modal-card-pic">
-      <div v-if="isCapturing" class="camera-container">
+      <div v-if="isCapturing">
+        <div class="flip-camera-icon" @click="switchCamera">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            id="Flip-Camera-Android--Streamline-Outlined-Material"
+            height="24"
+            width="24"
+          >
+            <desc>Flip Camera Android Streamline Icon: https://streamlinehq.com</desc>
+            <path
+              fill="#000000"
+              d="M12 22c-2.33335 0 -4.4 -0.71665 -6.2 -2.15 -1.8 -1.43335 -2.958335 -3.29165 -3.475 -5.575H3.85c0.5 1.85 1.50415 3.35 3.0125 4.5S10.08335 20.5 12 20.5c1.63335 0 3.1375 -0.42085 4.5125 -1.2625S18.95 17.25 19.7 15.8h-3.275v-1.525H22V20h-1.475v-2.725c-0.95 1.46665 -2.175 2.62085 -3.675 3.4625S13.73335 22 12 22Zm0.025 -7.475c-0.7 0 -1.3 -0.25 -1.8 -0.75s-0.75 -1.1 -0.75 -1.8 0.25 -1.3 0.75 -1.8 1.1 -0.75 1.8 -0.75 1.3 0.25 1.8 0.75 0.75 1.1 0.75 1.8 -0.25 1.3 -0.75 1.8 -1.1 0.75 -1.8 0.75ZM2 9.7V4h1.5v2.675c0.95 -1.46665 2.17085 -2.6125 3.6625 -3.4375C8.65415 2.4125 10.26665 2 12 2c2.33335 0 4.40415 0.7125 6.2125 2.1375 1.80835 1.425 2.97085 3.27915 3.4875 5.5625h-1.525c-0.5 -1.85 -1.50835 -3.35 -3.025 -4.5 -1.51665 -1.15 -3.23335 -1.725 -5.15 -1.725 -1.61665 0 -3.10835 0.425 -4.475 1.275 -1.36665 0.85 -2.43335 1.99165 -3.2 3.425h3.275v1.525H2Z"
+              stroke-width="0.5"
+            ></path>
+          </svg>
+        </div>
         <video ref="videoEl" class="photo-frame" autoplay playsinline muted></video>
 
         <div class="buttons mt-2 is-centered">
@@ -177,6 +200,15 @@ onBeforeUnmount(() => {
 <style scoped>
 .modal-card-pic {
   padding: 5px;
+}
+
+.flip-camera-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  padding: 5px;
+  cursor: pointer;
 }
 
 .photo-frame {
