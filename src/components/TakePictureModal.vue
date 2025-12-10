@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
     close-button-aria-label="Close"
     aria-modal
   >
-    <section>
+    <section class="modal-card-pic">
       <div v-if="isCapturing" class="camera-container">
         <video ref="videoEl" class="photo-frame" autoplay playsinline muted></video>
 
@@ -175,12 +175,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.modal-card-pic {
+  padding: 5px;
+}
+
 .photo-frame {
-  padding-left: 5px;
-  padding-right: 5px;
   aspect-ratio: 9 / 16;
   width: 100%;
-  max-height: 70vh;
+  max-height: 65vh;
   object-fit: cover;
   border-radius: 10px;
   display: block;
