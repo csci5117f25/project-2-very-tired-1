@@ -176,7 +176,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .photo-frame {
-  padding: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
   aspect-ratio: 9 / 16;
   width: 100%;
   max-height: 70vh;
