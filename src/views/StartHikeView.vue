@@ -119,6 +119,7 @@ onMounted(async () => {
         trail: [],
         name: hikeName.value,
         lastUpdatedAt: serverTimestamp(),
+        photoCount: 0,
       })
       hikeId.value = docRef.id
       console.log('Created new hike for user', uid.value, ':', hikeId.value)

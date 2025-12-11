@@ -1,21 +1,13 @@
 import { computed } from 'vue'
-import { collection, query, where, doc } from 'firebase/firestore'
+import { doc } from 'firebase/firestore'
 import { useDocument } from 'vuefire'
 import { db } from '@/firebase_conf'
-import { useHikes } from './useHikes'
 
 export function useGoals(uidRef, typeRef) {
   const goalsQuery = computed(() => {
-    const uid = uidRef.value
-    const type = typeRef.value
+    if (!uidRef.value || !typeRef.value) return null
 
-    console.log('uid:', uid)
-    console.log('type:', type)
-
-    if (!uid || !type) return null
-
-    console.log('Fetching path:', `users/${uid}/goals/${type}`)
-    return doc(db, 'users', uid, 'goals', type)
+    return doc(db, 'users', uidRef.value, 'goals', typeRef.value)
   })
 
   const goals = useDocument(goalsQuery)

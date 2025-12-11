@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 const props = defineProps({
   color: { type: String, required: true },
   unit: { type: String, required: true },
@@ -10,16 +11,16 @@ const props = defineProps({
   },
 })
 
-const percent = Math.ceil((props.current / props.target) * 100)
+const percent = computed(() => {
+  if (!props.target) return 0
+  return Math.round((props.current / props.target) * 100)
+})
 
-let className = ''
-console.log(props.target)
-console.log(percent)
-if (percent === 0) {
-  className = 'zero'
-} else if (percent < 50) {
-  className = 'less'
-}
+const className = computed(() => {
+  if (percent.value === 0) return 'zero'
+  if (percent.value < 50) return 'less'
+  return ''
+})
 </script>
 <template>
   <div class="container">
@@ -32,8 +33,7 @@ if (percent === 0) {
       }"
     >
       <h3>
-        {{ current }}
-        <span>/{{ target }}</span>
+        {{ current }}<span>/{{ target }}</span>
       </h3>
       <h4>{{ unit }}</h4>
     </div>
@@ -66,7 +66,7 @@ if (percent === 0) {
   font-weight: 500;
 }
 .progress h3 span {
-  font-size: 0.65em;
+  font-size: 0.55em;
   font-weight: 400;
 }
 

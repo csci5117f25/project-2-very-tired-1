@@ -3,7 +3,7 @@ import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useGeolocation } from '@vueuse/core'
 import { db, storage } from '@/firebase_conf'
-import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, setDoc, serverTimestamp, increment, updateDoc } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const props = defineProps({
@@ -68,6 +68,7 @@ async function savePhoto() {
   try {
     const photosCol = collection(db, 'users', uid.value, 'hikes', props.hikeId, 'photos')
     const photoDocRef = doc(photosCol)
+    const hikeRef = doc(db, 'users', uid.value, 'hikes', props.hikeId)
     const photoId = photoDocRef.id
 
     const path = `users/${uid.value}/hikes/${props.hikeId}/photos/${photoId}.jpg`
@@ -90,6 +91,9 @@ async function savePhoto() {
       createdAt: serverTimestamp(),
     })
 
+    await updateDoc(hikeRef, {
+      photoCount: increment(1),
+    })
     description.value = ''
     emit('update:modelValue', false)
   } catch (err) {
