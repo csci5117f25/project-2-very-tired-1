@@ -49,12 +49,11 @@ if (percent === 0) {
 }
 .progress {
   position: relative;
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   color: #fff;
-  background: #444 linear-gradient(to right, transparent 50%, var(--clr) 0);
-  margin-bottom: 0px !important;
+  background: conic-gradient(var(--clr) calc(var(--i) * 1%), #444 0%);
 }
 .progress h3 {
   position: absolute;
