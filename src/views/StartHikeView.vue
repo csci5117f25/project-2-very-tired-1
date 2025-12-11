@@ -4,10 +4,21 @@ import { useRouter } from 'vue-router'
 import TakePictureModal from '@/components/TakePictureModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
-import { db } from '@/firebase_conf'
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { db, storage } from '@/firebase_conf'
+import { ref as storageRef, deleteObject } from 'firebase/storage'
 import { useAuth } from '@/composables/useAuth'
 import { getInProgressHike } from '@/composables/getInProgressHike'
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+} from 'firebase/firestore'
 
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
@@ -21,6 +32,26 @@ const elevationGainMeters = ref(0)
 const hikeName = ref('')
 const router = useRouter()
 const showTakePicture = ref(false)
+const photos = ref([])
+const currPhotoIndex = ref(0)
+
+async function loadPhotos() {
+  const q = query(
+    collection(db, 'users', uid.value, 'hikes', hikeId.value, 'photos'),
+    orderBy('createdAt', 'desc'),
+  )
+  const snapshot = await getDocs(q)
+  photos.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+}
+
+async function deletePhoto(photo) {
+  if (confirm('Delete this photo?')) {
+    await deleteDoc(doc(db, 'users', uid.value, 'hikes', hikeId.value, 'photos', photo.id))
+    const imageRef = storageRef(storage, photo.storagePath)
+    await deleteObject(imageRef)
+    photos.value = photos.value.filter((p) => p.id !== photo.id)
+  }
+}
 
 const formattedTime = computed(() => {
   const s = Math.max(0, Math.floor(elapsed.value))
@@ -60,7 +91,16 @@ function computeDistanceMeters(lat1, lon1, lat2, lon2) {
   return d * 1000
 }
 
-async function stopHike() {
+async function cancelHike() {
+  if (confirm('Are you sure you want to cancel this hike? It will be deleted.')) {
+    stopTimer()
+    const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    await deleteDoc(hikeRef)
+    router.push('/')
+  }
+}
+
+async function finishHike() {
   stopTimer()
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
@@ -75,7 +115,7 @@ async function stopHike() {
     })
     router.push('/')
   } catch (e) {
-    console.error('Failed to update hike on stop:', e)
+    console.error('Failed to update hike on finish:', e)
   }
 }
 
@@ -118,6 +158,7 @@ onMounted(async () => {
     }
   }
 
+  loadPhotos()
   startTimer()
 })
 
@@ -168,7 +209,9 @@ watch(
     // Update elevation gain when a new point is added
     if (prev && typeof prev.alt === 'number' && typeof c.altitude === 'number') {
       const deltaAlt = c.altitude - prev.alt
-      if (deltaAlt > 0) elevationGainMeters.value += deltaAlt
+      if (deltaAlt > 0) {
+        elevationGainMeters.value += deltaAlt
+      }
     }
 
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
@@ -184,9 +227,8 @@ watch(
 )
 
 watch(hikeName, (v) => {
-  if (!hikeId.value) return
   const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
-  updateDoc(hikeRef, { name: v }).catch((err) => console.warn('Failed updating hike name:', err))
+  updateDoc(hikeRef, { name: v })
 })
 </script>
 
@@ -205,18 +247,30 @@ watch(hikeName, (v) => {
         >
       </div>
 
-      <b-field label="Hike Name">
+      <b-field label="Hike Name (required)">
         <b-input v-model="hikeName" placeholder="Enter a name for this hike" required />
       </b-field>
 
       <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button type="is-danger" @click="stopHike" :disabled="!hikeName.trim()"
-          >Stop Hike</b-button
+        <b-button type="is-success" @click="finishHike" :disabled="!hikeName.trim()"
+          >Finish</b-button
         >
         <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
+        <b-button type="is-danger" @click="cancelHike">Cancel</b-button>
+      </div>
+
+      <div v-if="photos.length > 0" class="photos-section">
+        <b-carousel-list v-model="currPhotoIndex" :data="photos">
+          <template #item="photo">
+            <div class="photo-item">
+              <img :src="photo.downloadURL" alt="Hike photo" class="photo-img" />
+              <button class="delete is-small delete-btn" @click.stop="deletePhoto(photo)"></button>
+            </div>
+          </template>
+        </b-carousel-list>
       </div>
     </section>
-    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" />
+    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" @photo-added="loadPhotos" />
   </div>
 </template>
 
@@ -241,5 +295,24 @@ watch(hikeName, (v) => {
 }
 .action-buttons {
   margin-top: 12px;
+}
+.photo-item {
+  position: relative;
+  padding: 0 5px;
+}
+.photo-img {
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 4px;
+  width: 100%;
+}
+.delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background-color: rgba(255, 0, 0, 0.7);
+}
+.delete-btn:hover {
+  background-color: rgba(255, 0, 0, 1);
 }
 </style>

@@ -10,7 +10,7 @@ const props = defineProps({
   modelValue: { type: Boolean, required: true },
   hikeId: { type: String, required: true },
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'photo-added'])
 
 const { user } = useAuth()
 const uid = ref(user.value?.uid)
@@ -91,6 +91,7 @@ async function savePhoto() {
     })
 
     description.value = ''
+    emit('photo-added')
     emit('update:modelValue', false)
   } catch (err) {
     console.error('Failed to save photo:', err)
