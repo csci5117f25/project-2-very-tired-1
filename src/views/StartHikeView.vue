@@ -12,6 +12,45 @@ import { getInProgressHike } from '@/composables/getInProgressHike'
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
 
+// Kalman filter for GPS smoothing - reduces jitter and zigzag patterns
+class KalmanFilter {
+  constructor(processNoise = 0.00001, measurementNoise = 0.00005) {
+    this.Q = processNoise      // How much we expect position to change naturally
+    this.R = measurementNoise  // GPS measurement noise (tuned for lat/lng scale)
+    this.P = 1                 // Initial estimation error
+    this.X = null              // Current best estimate
+  }
+
+  update(measurement, accuracy = null) {
+    // Adjust measurement noise based on reported GPS accuracy
+    const R = accuracy ? this.R * (accuracy / 5) : this.R
+
+    if (this.X === null) {
+      this.X = measurement
+      return measurement
+    }
+
+    // Prediction step - increase uncertainty
+    this.P = this.P + this.Q
+
+    // Update step - blend prediction with measurement
+    const K = this.P / (this.P + R) // Kalman gain
+    this.X = this.X + K * (measurement - this.X)
+    this.P = (1 - K) * this.P
+
+    return this.X
+  }
+
+  reset() {
+    this.X = null
+    this.P = 1
+  }
+}
+
+// Separate filter for each dimension
+const latFilter = new KalmanFilter()
+const lngFilter = new KalmanFilter()
+
 const trail = ref([])
 const elapsed = ref(0) // seconds
 const timerId = ref(null)
@@ -90,6 +129,13 @@ onMounted(async () => {
     elevationGainMeters.value = existingHike.elevationGainMeters || 0
     hikeName.value = existingHike.name || ''
     console.log('Loaded in-progress hike:', hikeId.value)
+
+    // Prime Kalman filters with last known position for smooth continuation
+    if (trail.value.length > 0) {
+      const lastPoint = trail.value[trail.value.length - 1]
+      latFilter.update(lastPoint.lat)
+      lngFilter.update(lastPoint.lng)
+    }
     if (existingHike.lastUpdatedAt) {
       const now = new Date()
       const lastUpdated = existingHike.lastUpdatedAt.toDate()
@@ -155,19 +201,23 @@ watch(
       return
     }
 
-    // avoid pushing duplicate consecutive points (0.00005 is around 5 meters)
+    // Apply Kalman filter to smooth GPS coordinates
+    const smoothedLat = latFilter.update(c.latitude, c.accuracy)
+    const smoothedLng = lngFilter.update(c.longitude, c.accuracy)
+
+    // Avoid pushing duplicate consecutive points (0.00005 is around 5 meters)
     const last = trail.value[trail.value.length - 1]
     if (
       last &&
-      Math.abs(last.lat - c.latitude) < 0.00005 &&
-      Math.abs(last.lng - c.longitude) < 0.00005
+      Math.abs(last.lat - smoothedLat) < 0.00005 &&
+      Math.abs(last.lng - smoothedLng) < 0.00005
     ) {
       return
     }
 
     trail.value.push({
-      lat: c.latitude,
-      lng: c.longitude,
+      lat: smoothedLat,
+      lng: smoothedLng,
       alt: typeof c.altitude === 'number' ? c.altitude : null,
     })
 
@@ -176,7 +226,7 @@ watch(
     // Update accumulated distance when a new point is added
     const prev = trail.value[trail.value.length - 2]
     if (prev) {
-      const added = computeDistanceMeters(prev.lat, prev.lng, c.latitude, c.longitude)
+      const added = computeDistanceMeters(prev.lat, prev.lng, smoothedLat, smoothedLng)
       distanceMeters.value += added
     }
 
