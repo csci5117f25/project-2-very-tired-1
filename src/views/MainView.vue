@@ -76,7 +76,7 @@ async function handleLogout() {
           </g>
         </svg>
       </base-card>
-      <base-card link="" size="half" title="Goals">
+      <base-card link="/goals" size="half" title="Goals">
         <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 16 16">
           <path
             fill="#000000"

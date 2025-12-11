@@ -5,7 +5,7 @@ import TakePictureModal from '@/components/TakePictureModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db } from '@/firebase_conf'
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, updateDoc, doc, serverTimestamp, increment } from 'firebase/firestore'
 import { useAuth } from '@/composables/useAuth'
 import { getInProgressHike } from '@/composables/getInProgressHike'
 
@@ -64,6 +64,8 @@ async function stopHike() {
   stopTimer()
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    const userRef = doc(db, 'users', uid.value)
+
     await updateDoc(hikeRef, {
       finishedAt: serverTimestamp(),
       durationSec: elapsed.value,
@@ -72,6 +74,13 @@ async function stopHike() {
       name: hikeName.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
+    })
+
+    await updateDoc(userRef, {
+      totalDistance: increment(distanceMeters.value),
+      totalElevation: increment(elevationGainMeters.value),
+      totalHikes: increment(1),
+      updatedAt: serverTimestamp(),
     })
     router.push('/')
   } catch (e) {
