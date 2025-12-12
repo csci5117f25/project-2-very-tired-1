@@ -2,7 +2,7 @@
 import { useCollection } from 'vuefire'
 import { collection, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -12,6 +12,7 @@ const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
 
 const route = useRoute()
+const router = useRouter()
 
 const paramsExist = computed(() => {
   const { year, month, day } = route.params
@@ -62,43 +63,44 @@ async function handleDeleteHike(hikeId) {
   }
 }
 
-watch(
-  hikes,
-  async (newHikes) => {
-    if (!newHikes || newHikes.length === 0) {
-      hikesWithPhotos.value = []
-      return
-    }
+watch(hikes, async (newHikes) => {
+  if (paramsExist.value && (!newHikes || newHikes.length === 0)) {
+    router.replace({ name: 'not-found' })
+    return
+  }
 
-    const hikesData = await Promise.all(
-      newHikes.map(async (hike) => {
-        const hikeId = hike.id
+  if (!newHikes || newHikes.length === 0) {
+    hikesWithPhotos.value = []
+    return
+  }
 
-        try {
-          const photosSnapshot = await getDocs(
-            collection(db, 'users', uid.value, 'hikes', hikeId, 'photos'),
-          )
-          const photos = photosSnapshot.docs.map((doc) => doc.data())
+  const hikesData = await Promise.all(
+    newHikes.map(async (hike) => {
+      const hikeId = hike.id
 
-          return {
-            id: hikeId,
-            ...hike,
-            photos: photos,
-          }
-        } catch (error) {
-          console.error(`Error fetching photos for hike ${hikeId}:`, error)
-          return {
-            id: hikeId,
-            ...hike,
-            photos: [],
-          }
+      try {
+        const photosSnapshot = await getDocs(
+          collection(db, 'users', uid.value, 'hikes', hikeId, 'photos'),
+        )
+        const photos = photosSnapshot.docs.map((doc) => doc.data())
+
+        return {
+          id: hikeId,
+          ...hike,
+          photos: photos,
         }
-      }),
-    )
-    hikesWithPhotos.value = hikesData
-  },
-  { immediate: true },
-)
+      } catch (error) {
+        console.error(`Error fetching photos for hike ${hikeId}:`, error)
+        return {
+          id: hikeId,
+          ...hike,
+          photos: [],
+        }
+      }
+    }),
+  )
+  hikesWithPhotos.value = hikesData
+})
 </script>
 
 <template>
