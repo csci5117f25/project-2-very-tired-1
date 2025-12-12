@@ -111,7 +111,6 @@ const totalPhotos = computed(() => {
       <div class="overview">
         <long-goal-card :count1="userData.totalDistance" :count2="userData.totalElevation">
           <template #svg1>
-            <!-- SVG preserved exactly -->
             <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 512 512">
               <path
                 fill="#ffffff"
