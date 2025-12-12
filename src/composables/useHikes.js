@@ -8,7 +8,9 @@ export function useHikes(uid, year, month) {
   const end = new Date(year, month + 1, 1)
 
   const hikesQuery = computed(() => {
-    if (!uid) return null
+    if (!uid) {
+      return null
+    }
 
     return query(
       collection(db, 'users', uid, 'hikes'),

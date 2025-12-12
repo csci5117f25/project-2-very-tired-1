@@ -5,7 +5,9 @@ import { db } from '@/firebase_conf'
 
 export function useHikesRange(uid, range) {
   const hikesQuery = computed(() => {
-    if (!uid.value || !range.value) return null
+    if (!uid.value) {
+      return null
+    }
 
     return query(
       collection(db, 'users', uid.value, 'hikes'),

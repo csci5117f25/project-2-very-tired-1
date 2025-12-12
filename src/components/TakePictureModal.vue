@@ -68,6 +68,7 @@ async function savePhoto() {
   try {
     const photosCol = collection(db, 'users', uid.value, 'hikes', props.hikeId, 'photos')
     const photoDocRef = doc(photosCol)
+    const userRef = doc(db, 'users', uid.value)
     const hikeRef = doc(db, 'users', uid.value, 'hikes', props.hikeId)
     const photoId = photoDocRef.id
 
@@ -93,6 +94,11 @@ async function savePhoto() {
 
     await updateDoc(hikeRef, {
       photoCount: increment(1),
+    })
+
+    await updateDoc(userRef, {
+      totalPhotos: increment(1),
+      updatedAt: serverTimestamp(),
     })
     description.value = ''
     emit('update:modelValue', false)

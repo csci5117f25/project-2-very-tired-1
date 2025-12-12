@@ -43,6 +43,7 @@ export const signInWithGoogle = async () => {
       totalDistance: 0,
       totalElevation: 0,
       totalHikes: 0,
+      totalPhotos: 0,
       updatedAt: serverTimestamp(),
     })
 
