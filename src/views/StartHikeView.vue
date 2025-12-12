@@ -4,13 +4,63 @@ import { useRouter } from 'vue-router'
 import TakePictureModal from '@/components/TakePictureModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
-import { db } from '@/firebase_conf'
-import { collection, addDoc, updateDoc, doc, serverTimestamp, increment } from 'firebase/firestore'
+import { db, storage } from '@/firebase_conf'
+import { ref as storageRef, deleteObject, increment } from 'firebase/storage'
 import { useAuth } from '@/composables/useAuth'
 import { getInProgressHike } from '@/composables/getInProgressHike'
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+} from 'firebase/firestore'
 
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
+
+// Kalman filter for GPS smoothing - reduces jitter and zigzag patterns
+class KalmanFilter {
+  constructor(processNoise = 0.00001, measurementNoise = 0.00005) {
+    this.Q = processNoise // How much we expect position to change naturally
+    this.R = measurementNoise // GPS measurement noise (tuned for lat/lng scale)
+    this.P = 1 // Initial estimation error
+    this.X = null // Current best estimate
+  }
+
+  update(measurement, accuracy = null) {
+    // Adjust measurement noise based on reported GPS accuracy
+    const R = accuracy ? this.R * (accuracy / 5) : this.R
+
+    if (this.X === null) {
+      this.X = measurement
+      return measurement
+    }
+
+    // Prediction step - increase uncertainty
+    this.P = this.P + this.Q
+
+    // Update step - blend prediction with measurement
+    const K = this.P / (this.P + R) // Kalman gain
+    this.X = this.X + K * (measurement - this.X)
+    this.P = (1 - K) * this.P
+
+    return this.X
+  }
+
+  reset() {
+    this.X = null
+    this.P = 1
+  }
+}
+
+// Separate filter for each dimension
+const latFilter = new KalmanFilter()
+const lngFilter = new KalmanFilter()
 
 const trail = ref([])
 const elapsed = ref(0) // seconds
@@ -21,6 +71,26 @@ const elevationGainMeters = ref(0)
 const hikeName = ref('')
 const router = useRouter()
 const showTakePicture = ref(false)
+const photos = ref([])
+const currPhotoIndex = ref(0)
+
+async function loadPhotos() {
+  const q = query(
+    collection(db, 'users', uid.value, 'hikes', hikeId.value, 'photos'),
+    orderBy('createdAt', 'desc'),
+  )
+  const snapshot = await getDocs(q)
+  photos.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+}
+
+async function deletePhoto(photo) {
+  if (confirm('Delete this photo?')) {
+    await deleteDoc(doc(db, 'users', uid.value, 'hikes', hikeId.value, 'photos', photo.id))
+    const imageRef = storageRef(storage, photo.storagePath)
+    await deleteObject(imageRef)
+    photos.value = photos.value.filter((p) => p.id !== photo.id)
+  }
+}
 
 const formattedTime = computed(() => {
   const s = Math.max(0, Math.floor(elapsed.value))
@@ -60,7 +130,16 @@ function computeDistanceMeters(lat1, lon1, lat2, lon2) {
   return d * 1000
 }
 
-async function stopHike() {
+async function cancelHike() {
+  if (confirm('Are you sure you want to cancel this hike? It will be deleted.')) {
+    stopTimer()
+    const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    await deleteDoc(hikeRef)
+    router.push('/')
+  }
+}
+
+async function finishHike() {
   stopTimer()
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
@@ -84,7 +163,7 @@ async function stopHike() {
     })
     router.push('/')
   } catch (e) {
-    console.error('Failed to update hike on stop:', e)
+    console.error('Failed to update hike on finish:', e)
   }
 }
 
@@ -99,6 +178,13 @@ onMounted(async () => {
     elevationGainMeters.value = existingHike.elevationGainMeters || 0
     hikeName.value = existingHike.name || ''
     console.log('Loaded in-progress hike:', hikeId.value)
+
+    // Prime Kalman filters with last known position for smooth continuation
+    if (trail.value.length > 0) {
+      const lastPoint = trail.value[trail.value.length - 1]
+      latFilter.update(lastPoint.lat)
+      lngFilter.update(lastPoint.lng)
+    }
     if (existingHike.lastUpdatedAt) {
       const now = new Date()
       const lastUpdated = existingHike.lastUpdatedAt.toDate()
@@ -128,6 +214,7 @@ onMounted(async () => {
     }
   }
 
+  loadPhotos()
   startTimer()
 })
 
@@ -135,7 +222,16 @@ onBeforeUnmount(() => {
   stopTimer()
 })
 
-const { coords } = useGeolocation()
+// Use GPS hardware for high accuracy (5-15m) instead of WiFi/cell towers (30-100m+)
+const { coords } = useGeolocation({
+  enableHighAccuracy: true, // Forces GPS hardware usage
+  maximumAge: 0, // Always get fresh position, no caching
+  timeout: 30000, // Allow up to 30s for GPS lock
+})
+
+// Accuracy thresholds in meters - reject readings above these
+const ACCURACY_THRESHOLD = 20 // Horizontal (lat/lng)
+const ALTITUDE_ACCURACY_THRESHOLD = 30 // Vertical (elevation) - GPS altitude is less precise
 
 watch(
   coords,
@@ -150,19 +246,31 @@ watch(
       return
     }
 
-    // avoid pushing duplicate consecutive points (0.00005 is around 5 meters)
+    // Filter out low-accuracy readings (WiFi/cell tower triangulation)
+    if (typeof c.accuracy === 'number' && c.accuracy > ACCURACY_THRESHOLD) {
+      console.log(
+        `Skipping low-accuracy reading: ${c.accuracy}m (threshold: ${ACCURACY_THRESHOLD}m)`,
+      )
+      return
+    }
+
+    // Apply Kalman filter to smooth GPS coordinates
+    const smoothedLat = latFilter.update(c.latitude, c.accuracy)
+    const smoothedLng = lngFilter.update(c.longitude, c.accuracy)
+
+    // Avoid pushing duplicate consecutive points (0.00005 is around 5 meters)
     const last = trail.value[trail.value.length - 1]
     if (
       last &&
-      Math.abs(last.lat - c.latitude) < 0.00005 &&
-      Math.abs(last.lng - c.longitude) < 0.00005
+      Math.abs(last.lat - smoothedLat) < 0.00005 &&
+      Math.abs(last.lng - smoothedLng) < 0.00005
     ) {
       return
     }
 
     trail.value.push({
-      lat: c.latitude,
-      lng: c.longitude,
+      lat: smoothedLat,
+      lng: smoothedLng,
       alt: typeof c.altitude === 'number' ? c.altitude : null,
     })
 
@@ -171,14 +279,23 @@ watch(
     // Update accumulated distance when a new point is added
     const prev = trail.value[trail.value.length - 2]
     if (prev) {
-      const added = computeDistanceMeters(prev.lat, prev.lng, c.latitude, c.longitude)
+      const added = computeDistanceMeters(prev.lat, prev.lng, smoothedLat, smoothedLng)
       distanceMeters.value += added
     }
 
-    // Update elevation gain when a new point is added
-    if (prev && typeof prev.alt === 'number' && typeof c.altitude === 'number') {
+    // Update elevation gain when a new point is added (only if altitude accuracy is good)
+    const hasGoodAltitudeAccuracy =
+      typeof c.altitudeAccuracy === 'number' && c.altitudeAccuracy <= ALTITUDE_ACCURACY_THRESHOLD
+    if (
+      prev &&
+      typeof prev.alt === 'number' &&
+      typeof c.altitude === 'number' &&
+      hasGoodAltitudeAccuracy
+    ) {
       const deltaAlt = c.altitude - prev.alt
-      if (deltaAlt > 0) elevationGainMeters.value += deltaAlt
+      if (deltaAlt > 0) {
+        elevationGainMeters.value += deltaAlt
+      }
     }
 
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
@@ -190,13 +307,12 @@ watch(
       lastUpdatedAt: serverTimestamp(),
     }).catch((err) => console.warn('Failed updating trail:', err))
   },
-  { immediate: true, enableHighAccuracy: true },
+  { immediate: true },
 )
 
 watch(hikeName, (v) => {
-  if (!hikeId.value) return
   const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
-  updateDoc(hikeRef, { name: v }).catch((err) => console.warn('Failed updating hike name:', err))
+  updateDoc(hikeRef, { name: v })
 })
 </script>
 
@@ -215,18 +331,30 @@ watch(hikeName, (v) => {
         >
       </div>
 
-      <b-field label="Hike Name">
+      <b-field label="Hike Name (required)">
         <b-input v-model="hikeName" placeholder="Enter a name for this hike" required />
       </b-field>
 
       <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button type="is-danger" @click="stopHike" :disabled="!hikeName.trim()"
-          >Stop Hike</b-button
+        <b-button type="is-success" @click="finishHike" :disabled="!hikeName.trim()"
+          >Finish</b-button
         >
         <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
+        <b-button type="is-danger" @click="cancelHike">Cancel</b-button>
+      </div>
+
+      <div v-if="photos.length > 0" class="photos-section">
+        <b-carousel-list v-model="currPhotoIndex" :data="photos">
+          <template #item="photo">
+            <div class="photo-item">
+              <img :src="photo.downloadURL" alt="Hike photo" class="photo-img" />
+              <button class="delete is-small delete-btn" @click.stop="deletePhoto(photo)"></button>
+            </div>
+          </template>
+        </b-carousel-list>
       </div>
     </section>
-    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" />
+    <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" @photo-added="loadPhotos" />
   </div>
 </template>
 
@@ -251,5 +379,24 @@ watch(hikeName, (v) => {
 }
 .action-buttons {
   margin-top: 12px;
+}
+.photo-item {
+  position: relative;
+  padding: 0 5px;
+}
+.photo-img {
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 4px;
+  width: 100%;
+}
+.delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background-color: rgba(255, 0, 0, 0.7);
+}
+.delete-btn:hover {
+  background-color: rgba(255, 0, 0, 1);
 }
 </style>
