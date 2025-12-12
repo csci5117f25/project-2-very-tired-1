@@ -18,6 +18,7 @@
   "totalHikes": 12,                   // total completed hikes by this user
   "totalDistance": 54321,             // total distance across all hikes (meters)
   "totalElevation": 21000,            // total elevation across all hikes (meters)
+  "totalPhotos": 120,                 // total photos arcoss all hikes
   "updatedAt": "<Timestamp>"
 
 ```
