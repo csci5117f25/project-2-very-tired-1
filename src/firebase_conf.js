@@ -34,18 +34,6 @@ export const signInWithGoogle = async () => {
   const goalSnap = await getDoc(goalRef)
 
   const userRef = doc(db, 'users', user.uid)
-  const userSnap = await getDoc(userRef)
-
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      totalDistance: 0,
-      totalElevation: 0,
-      totalHikes: 0,
-      totalPhotos: 0,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    })
-  }
 
   /*
    * According to the American Heart Association, the recommended amount of moderate-intensity aerobic activity for adults is 150 minutes per week.
@@ -55,6 +43,14 @@ export const signInWithGoogle = async () => {
    */
 
   if (!goalSnap.exists()) {
+    await setDoc(userRef, {
+      totalDistance: 0,
+      totalElevation: 0,
+      totalHikes: 0,
+      totalPhotos: 0,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
     await setDoc(doc(db, 'users', user.uid, 'goals', 'weekly'), {
       type: 'weekly',
       hikesTarget: 3,
