@@ -30,30 +30,31 @@ export const signInWithGoogle = async () => {
   const result = await signInWithPopup(auth, provider)
   const user = result.user
 
-  const ref = doc(db, 'users', user.uid, 'goals', 'weekly')
-  const snap = await getDoc(ref)
+  const goalRef = doc(db, 'users', user.uid, 'goals', 'weekly')
+  const goalSnap = await getDoc(goalRef)
 
-  const isFirstTime = !snap.exists()
+  const userRef = doc(db, 'users', user.uid)
+  const userSnap = await getDoc(userRef)
 
-  if (isFirstTime) {
-    console.log('New user')
-    console.log('on-boarding process begins')
-
-    await setDoc(doc(db, 'users', user.uid), {
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
       totalDistance: 0,
       totalElevation: 0,
       totalHikes: 0,
       totalPhotos: 0,
+      createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
+  }
 
-    /*
-     * According to the American Heart Association, the recommended amount of moderate-intensity aerobic activity for adults is 150 minutes per week.
-     * Example of moderate-intensity aerobic activity: brisk walking(at least 2.5miles per hour)
-     * THAT is 10,058 meters per week | 43,744 meters per month | 524,640 meters per year
-     * Source: https://www.heart.org/en/healthy-living/fitness/fitness-basics/aha-recs-for-physical-activity-in-adults
-     */
+  /*
+   * According to the American Heart Association, the recommended amount of moderate-intensity aerobic activity for adults is 150 minutes per week.
+   * Example of moderate-intensity aerobic activity: brisk walking(at least 2.5miles per hour)
+   * THAT is 10,058 meters per week | 43,744 meters per month | 524,640 meters per year
+   * Source: https://www.heart.org/en/healthy-living/fitness/fitness-basics/aha-recs-for-physical-activity-in-adults
+   */
 
+  if (!goalSnap.exists()) {
     await setDoc(doc(db, 'users', user.uid, 'goals', 'weekly'), {
       type: 'weekly',
       hikesTarget: 3,
@@ -81,6 +82,7 @@ export const signInWithGoogle = async () => {
       updatedAt: serverTimestamp(),
     })
   }
+
   return result
 }
 
