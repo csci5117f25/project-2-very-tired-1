@@ -84,4 +84,16 @@ const goBack = () => {
 .year-title {
   margin-bottom: 0px !important;
 }
+
+.body {
+  margin-top: 10px;
+  width: 100%;
+}
+
+@media (min-width: 500px) {
+  .body {
+    width: calc(500px + (900px - 500px) * ((100vw - 500px) / (1920px - 500px)));
+    margin: 0 auto;
+  }
+}
 </style>

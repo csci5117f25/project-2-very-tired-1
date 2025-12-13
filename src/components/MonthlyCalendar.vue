@@ -117,14 +117,12 @@ const goToDay = (day) => {
         <li
           v-for="(d, idx) in days"
           :key="idx"
-          :class="[
-            d.type === 'prev' || d.type === 'next' ? 'inactive' : '',
-            d.isToday ? 'active' : '',
-            hikesOn(d.day).length > 0 ? 'hasHikes' : '',
-          ]"
+          :class="[d.type === 'prev' || d.type === 'next' ? 'inactive' : '']"
           @click="goToDay(d.day)"
         >
-          {{ d.day }}
+          <p :class="hikesOn(d.day).length > 0 ? 'hasHikes' : ''">
+            {{ d.day }}
+          </p>
         </li>
       </ul>
     </div>
@@ -156,14 +154,28 @@ li {
   box-sizing: border-box;
 }
 
-.dates li.hasHikes {
-  background: transparent;
-  border: 2px solid var(--bulma-border);
-  position: relative;
-  z-index: 10;
-  height: 30px;
-  line-height: 30px;
-  text-align: center;
-  width: calc(100% / 7);
+.dates p {
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+}
+
+.dates p.hasHikes {
+  font-weight: 600;
+  color: black;
+  background-color: var(--bulma-primary);
+}
+
+@media (prefers-color-scheme: light) {
+  .dates p.hasHikes {
+    color: white;
+  }
 }
 </style>
