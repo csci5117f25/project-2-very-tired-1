@@ -4,7 +4,7 @@ import { db } from '@/firebase_conf'
 export async function getInProgressHike(uid) {
   const inProgressHike = query(
     collection(db, 'users', uid, 'hikes'),
-    where('status', '==', 'in_progress'),
+    where('status', 'in', ['in_progress', 'paused']),
   )
   const querySnapshot = await getDocs(inProgressHike)
 

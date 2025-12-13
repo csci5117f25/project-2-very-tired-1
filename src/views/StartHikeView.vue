@@ -70,10 +70,18 @@ const hikeId = ref(null)
 const distanceMeters = ref(0)
 const elevationGainMeters = ref(0)
 const hikeName = ref('')
+const isPaused = ref(false)
 const router = useRouter()
 const showTakePicture = ref(false)
 const photos = ref([])
 const currPhotoIndex = ref(0)
+const isImageModalActive = ref(false)
+const selectedImage = ref('')
+
+function openImageModal(url) {
+  selectedImage.value = url
+  isImageModalActive.value = true
+}
 
 async function loadPhotos() {
   const q = query(
@@ -113,6 +121,26 @@ function startTimer() {
 
 function stopTimer() {
   clearInterval(timerId.value)
+}
+
+async function togglePause() {
+  isPaused.value = !isPaused.value
+  if (isPaused.value) {
+    stopTimer()
+    const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    await updateDoc(hikeRef, {
+      status: 'paused',
+      lastUpdatedAt: serverTimestamp(),
+      durationSec: elapsed.value,
+    })
+  } else {
+    startTimer()
+    const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    await updateDoc(hikeRef, {
+      status: 'in_progress',
+      lastUpdatedAt: serverTimestamp(),
+    })
+  }
 }
 
 // https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
@@ -186,37 +214,38 @@ onMounted(async () => {
       latFilter.update(lastPoint.lat)
       lngFilter.update(lastPoint.lng)
     }
-    if (existingHike.lastUpdatedAt) {
+
+    if (existingHike.status === 'paused') {
+      isPaused.value = true
+    } else if (existingHike.lastUpdatedAt) {
       const now = new Date()
       const lastUpdated = existingHike.lastUpdatedAt.toDate()
       const diffSeconds = Math.floor((now - lastUpdated) / 1000)
       elapsed.value += diffSeconds
+      startTimer()
+    } else {
+      startTimer()
     }
   } else {
     // Create new hike in database
-    try {
-      const col = collection(db, 'users', uid.value, 'hikes')
-      const docRef = await addDoc(col, {
-        createdAt: serverTimestamp(),
-        startedAt: serverTimestamp(),
-        status: 'in_progress',
-        durationSec: 0,
-        distanceMeters: 0,
-        elevationGainMeters: 0,
-        trail: [],
-        name: hikeName.value,
-        lastUpdatedAt: serverTimestamp(),
-        photoCount: 0,
-      })
-      hikeId.value = docRef.id
-      console.log('Created new hike for user', uid.value, ':', hikeId.value)
-    } catch (e) {
-      console.error('Failed to create hike:', e)
-    }
+    const col = collection(db, 'users', uid.value, 'hikes')
+    const docRef = await addDoc(col, {
+      createdAt: serverTimestamp(),
+      startedAt: serverTimestamp(),
+      status: 'in_progress',
+      durationSec: 0,
+      distanceMeters: 0,
+      elevationGainMeters: 0,
+      trail: [],
+      name: hikeName.value,
+      lastUpdatedAt: serverTimestamp(),
+      photoCount: 0,
+    })
+    hikeId.value = docRef.id
+    startTimer()
   }
 
   loadPhotos()
-  startTimer()
 })
 
 onBeforeUnmount(() => {
@@ -237,6 +266,9 @@ const ALTITUDE_ACCURACY_THRESHOLD = 30 // Vertical (elevation) - GPS altitude is
 watch(
   coords,
   (c) => {
+    if (isPaused.value) {
+      return
+    }
     if (
       !c ||
       typeof c.latitude !== 'number' ||
@@ -337,23 +369,39 @@ watch(hikeName, (v) => {
       </b-field>
 
       <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button type="is-success" @click="finishHike" :disabled="!hikeName.trim()"
-          >Finish</b-button
-        >
-        <b-button type="is-primary" @click="showTakePicture = true">Take Picture</b-button>
-        <b-button type="is-danger" @click="cancelHike">Cancel</b-button>
+        <b-button
+          type="is-success"
+          @click="finishHike"
+          :disabled="!hikeName.trim()"
+          icon-left="flag-checkered"
+        ></b-button>
+        <b-button type="is-warning" @click="togglePause" :icon-left="isPaused ? 'play' : 'pause'">
+        </b-button>
+        <b-button type="is-primary" @click="showTakePicture = true" icon-left="camera"></b-button>
+        <b-button :type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
       </div>
 
       <div v-if="photos.length > 0" class="photos-section">
-        <b-carousel-list v-model="currPhotoIndex" :data="photos">
+        <b-carousel-list v-model="currPhotoIndex" :data="photos" :items-to-show="4.2">
           <template #item="photo">
             <div class="photo-item">
-              <img :src="photo.downloadURL" alt="Hike photo" class="photo-img" />
-              <button class="delete is-small delete-btn" @click.stop="deletePhoto(photo)"></button>
+              <img
+                :src="photo.downloadURL"
+                alt="Hike photo"
+                class="photo-img"
+                @click="openImageModal(photo.downloadURL)"
+              />
+              <button class="delete is-small delete-btn" @click="deletePhoto(photo)"></button>
             </div>
           </template>
         </b-carousel-list>
       </div>
+
+      <b-modal v-model="isImageModalActive">
+        <div class="is-flex is-justify-content-center is-align-items-center" style="height: 100%">
+          <img class="photo-img-modal" :src="selectedImage" />
+        </div>
+      </b-modal>
     </section>
     <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" @photo-added="loadPhotos" />
   </div>
@@ -365,38 +413,51 @@ watch(hikeName, (v) => {
   height: auto;
   padding: 12px;
 }
+
 .trail-line {
   display: inline-block;
   width: 90%;
   max-width: 600px;
 }
+
 .hike-details {
   width: 100%;
   display: block;
   padding: 12px;
 }
+
 .details-tags {
   margin-bottom: 8px;
 }
-.action-buttons {
-  margin-top: 12px;
-}
+
 .photo-item {
   position: relative;
   padding: 0 5px;
 }
+
+.photo-img-modal {
+  height: 75vh;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
 .photo-img {
   aspect-ratio: 9 / 16;
   object-fit: cover;
   border-radius: 4px;
   width: 100%;
+  cursor: pointer;
 }
+
 .delete-btn {
   position: absolute;
   top: 5px;
   right: 10px;
   background-color: rgba(255, 0, 0, 0.7);
 }
+
 .delete-btn:hover {
   background-color: rgba(255, 0, 0, 1);
 }

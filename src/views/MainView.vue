@@ -1,19 +1,15 @@
 <script setup>
-import { onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
+import WeatherWidget from '@/components/WeatherWidget.vue'
 import { useAuth } from '@/composables/useAuth'
-import { useGeolocation } from '@vueuse/core'
 
 const router = useRouter()
 const { signOut, user } = useAuth()
 
 const avatarURL = computed(() => user.value?.photoURL)
-
-onMounted(() => {
-  useGeolocation({ immediate: true, enableHighAccuracy: true })
-})
 
 async function handleLogout() {
   await signOut()
@@ -27,7 +23,9 @@ async function handleLogout() {
       <div class="profile-column">
         <profile-pic :src="avatarURL" :size="150" style="cursor: pointer" @click="handleLogout" />
       </div>
-      <base-card link="" size="half" title="Place Holder for weather"></base-card>
+      <div class="weather-card">
+        <WeatherWidget />
+      </div>
     </div>
 
     <div class="row">
@@ -118,5 +116,13 @@ async function handleLogout() {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.weather-card {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
