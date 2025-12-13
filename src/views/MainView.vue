@@ -1,9 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSwipe } from '@vueuse/core'
+import { collection, query, orderBy } from 'firebase/firestore'
+import { useCollection } from 'vuefire'
+import { db } from '@/firebase_conf'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
 import WeatherWidget from '@/components/WeatherWidget.vue'
+import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
@@ -11,6 +16,59 @@ const { signOut, user } = useAuth()
 
 const avatarURL = computed(() => user.value?.photoURL)
 const userName = computed(() => user.value?.displayName)
+const uid = computed(() => user.value?.uid)
+
+// Fetch all hikes
+const hikesQuery = computed(() => {
+  if (!uid.value) return null
+  return query(
+    collection(db, 'users', uid.value, 'hikes'),
+    orderBy('startedAt', 'desc')
+  )
+})
+
+const hikes = useCollection(hikesQuery)
+const currentHikeIndex = ref(0)
+const hikesLoaded = ref(false)
+
+// Mark loaded when hikes arrive OR after timeout (for users with no hikes)
+watch([hikes, uid], ([newHikes, newUid]) => {
+  if (newHikes?.length > 0) {
+    hikesLoaded.value = true
+    currentHikeIndex.value = 0
+  } else if (newUid && !hikesLoaded.value) {
+    setTimeout(() => { hikesLoaded.value = true }, 1000)
+  }
+}, { immediate: true })
+
+const currentHike = computed(() => hikes.value?.[currentHikeIndex.value] || null)
+const hikesLoading = computed(() => !hikesLoaded.value)
+
+// Page loading state
+const weatherLoaded = ref(false)
+const pageReady = computed(() => hikesLoaded.value && weatherLoaded.value)
+
+// Fallback: show page after 5 seconds regardless
+setTimeout(() => {
+  weatherLoaded.value = true
+  hikesLoaded.value = true
+}, 5000)
+
+// Swipe handling
+const hikeCardRef = ref(null)
+const { direction } = useSwipe(hikeCardRef, {
+  onSwipeEnd() {
+    if (!hikes.value?.length) return
+
+    if (direction.value === 'up') {
+      // Swipe up = next hike
+      currentHikeIndex.value = (currentHikeIndex.value + 1) % hikes.value.length
+    } else if (direction.value === 'down') {
+      // Swipe down = previous hike
+      currentHikeIndex.value = (currentHikeIndex.value - 1 + hikes.value.length) % hikes.value.length
+    }
+  }
+})
 
 async function handleLogout() {
   await signOut()
@@ -19,7 +77,12 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="rows">
+  <transition name="fade">
+    <div v-if="!pageReady" class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+  </transition>
+  <div class="rows" :class="{ 'content-ready': pageReady }">
     <div class="row">
       <div class="profile-column">
         <profile-pic
@@ -30,19 +93,25 @@ async function handleLogout() {
         />
       </div>
       <div class="weather-card">
-        <WeatherWidget />
+        <WeatherWidget @loaded="weatherLoaded = true" />
       </div>
     </div>
 
-    <div class="row">
-      <base-card link="/previousHikes" size="full" title="Previous Hikes">
-        <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 256 256">
-          <path
-            fill="#000000"
-            d="M152 84a36 36 0 1 0-36-36a36 36 0 0 0 36 36m0-48a12 12 0 1 1-12 12a12 12 0 0 1 12-12m52 108v88a12 12 0 0 1-24 0v-76.76c-24.92-3.37-33.94-17.29-41.38-28.76c-1.55-2.39-3.05-4.71-4.67-6.88l-9.54 22L159 166.23a12 12 0 0 1 5 9.77v56a12 12 0 0 1-24 0v-49.83l-25.37-18.12L83 236.78a12 12 0 1 1-22-9.57L118.52 94.9A12 12 0 0 1 135 89a45.53 45.53 0 0 1 8.84 6c6.78 5.89 11.09 12.53 14.89 18.39C166.27 125 170.8 132 192 132a12 12 0 0 1 12 12m-139.4 9.88L39.27 143A12 12 0 0 1 33 127.27l24-56A12 12 0 0 1 72.73 65l25.61 11a12 12 0 1 1-9.45 22L74.3 91.76L59.76 125.7l14.29 6.12a12 12 0 1 1-9.45 22.06"
-          />
-        </svg>
-      </base-card>
+    <div class="row" ref="hikeCardRef">
+      <div class="hike-card-wrapper">
+        <PreviousHikesCard
+          class="previous-hike-card"
+          :hikeId="currentHike?.id"
+          :name="currentHike?.name"
+          :datetime="currentHike?.startedAt"
+          :distance="currentHike?.distanceMeters"
+          :duration="currentHike?.durationSec"
+          :trail="currentHike?.trail"
+          :link="currentHike ? `/previousHikes?scrollTo=${currentHike.id}` : '/previousHikes'"
+          :showTrailInContent="true"
+          :isLoading="hikesLoading"
+        />
+      </div>
     </div>
 
     <div class="row">
@@ -107,6 +176,8 @@ async function handleLogout() {
   gap: 25px;
   height: 100vh;
   padding: 5vh 3vw 10vh 3vw;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .row {
@@ -131,5 +202,62 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.previous-hike-card {
+  width: 100%;
+  height: 100%;
+}
+
+.previous-hike-card :deep(.card-image) {
+  display: none;
+}
+
+.previous-hike-card :deep(.delete-button) {
+  display: none;
+}
+
+.hike-card-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bulma-body-background-color, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bulma-border);
+  border-top-color: var(--bulma-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.rows.content-ready {
+  opacity: 1;
 }
 </style>

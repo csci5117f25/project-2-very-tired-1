@@ -3,7 +3,7 @@ import { useCollection } from 'vuefire'
 import { collection, getDocs, doc, deleteDoc, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
 import BackButton from '@/components/BackButton.vue'
@@ -13,6 +13,7 @@ const uid = computed(() => user.value?.uid)
 
 const route = useRoute()
 const router = useRouter()
+const scrollToId = computed(() => route.query.scrollTo)
 
 const paramsExist = computed(() => {
   const { year, month, day } = route.params
@@ -101,7 +102,16 @@ watch(hikes, async (newHikes) => {
     }),
   )
   hikesWithPhotos.value = hikesData
-})
+
+  // Scroll to specific hike if scrollTo query param exists
+  if (scrollToId.value) {
+    await nextTick()
+    const element = document.getElementById(`hike-${scrollToId.value}`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -114,6 +124,7 @@ watch(hikes, async (newHikes) => {
         <div
           v-for="hike in hikesWithPhotos"
           :key="hike.id"
+          :id="`hike-${hike.id}`"
           class="column is-12-mobile is-4-desktop"
         >
           <PreviousHikesCard
