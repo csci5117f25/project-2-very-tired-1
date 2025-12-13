@@ -11,7 +11,10 @@ const rainChance = ref(null)
 const description = ref('')
 const iconUrl = ref('')
 const loading = ref(true)
+const hasError = ref(false)
 const isDay = ref(true) // Track day/night state
+
+const emit = defineEmits(['loaded'])
 
 const { coords } = useGeolocation({ immediate: true, enableHighAccuracy: true })
 
@@ -45,6 +48,86 @@ function getIcon(forecast, isDay) {
   return isDay ? 'day.svg' : 'night.svg'
 }
 
+// Sunrise/Sunset calculation
+// Source: https://edwilliams.org/sunrise_sunset_algorithm.htm (US Naval Observatory)
+function calculateSunTimes(lat, lng, date = new Date()) {
+  const toRad = (deg) => deg * Math.PI / 180
+  const toDeg = (rad) => rad * 180 / Math.PI
+
+  // Day of year
+  const start = new Date(date.getFullYear(), 0, 0)
+  const diff = date - start
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+  // Longitude to hour value
+  const lngHour = lng / 15
+
+  function calcTime(isRising) {
+    // Approximate time
+    const t = dayOfYear + ((isRising ? 6 : 18) - lngHour) / 24
+
+    // Sun's mean anomaly
+    const M = (0.9856 * t) - 3.289
+
+    // Sun's true longitude
+    let L = M + (1.916 * Math.sin(toRad(M))) + (0.020 * Math.sin(toRad(2 * M))) + 282.634
+    L = ((L % 360) + 360) % 360
+
+    // Right ascension
+    let RA = toDeg(Math.atan(0.91764 * Math.tan(toRad(L))))
+    RA = ((RA % 360) + 360) % 360
+
+    // RA in same quadrant as L
+    const Lquadrant = Math.floor(L / 90) * 90
+    const RAquadrant = Math.floor(RA / 90) * 90
+    RA = RA + (Lquadrant - RAquadrant)
+    RA = RA / 15
+
+    // Declination
+    const sinDec = 0.39782 * Math.sin(toRad(L))
+    const cosDec = Math.cos(Math.asin(sinDec))
+
+    // Hour angle
+    const zenith = 90.833 // Official zenith
+    const cosH = (Math.cos(toRad(zenith)) - (sinDec * Math.sin(toRad(lat)))) / (cosDec * Math.cos(toRad(lat)))
+
+    if (cosH > 1 || cosH < -1) return null // Sun never rises/sets
+
+    let H = toDeg(Math.acos(cosH))
+    if (isRising) H = 360 - H
+    H = H / 15
+
+    // Local mean time
+    const T = H + RA - (0.06571 * t) - 6.622
+
+    // UTC
+    let UT = T - lngHour
+    UT = ((UT % 24) + 24) % 24
+
+    // Convert to local time
+    const offset = -date.getTimezoneOffset() / 60
+    let localT = UT + offset
+    localT = ((localT % 24) + 24) % 24
+
+    return localT // Hours (e.g., 6.5 = 6:30 AM)
+  }
+
+  return {
+    sunrise: calcTime(true),
+    sunset: calcTime(false)
+  }
+}
+
+function isDaytimeByLocation(lat, lng) {
+  const { sunrise, sunset } = calculateSunTimes(lat, lng)
+  if (sunrise === null || sunset === null) return true // Default to day
+
+  const now = new Date()
+  const currentHour = now.getHours() + now.getMinutes() / 60
+
+  return currentHour >= sunrise && currentHour < sunset
+}
+
 // Feels like temperature calculation
 // Reference: https://climate.umt.edu/mesonet/ag_tools/feels_like/
 function calcFeelsLike(t, v, rh) {
@@ -67,6 +150,7 @@ function calcFeelsLike(t, v, rh) {
 }
 
 async function fetchWeather(lat, lon) {
+  console.log('Fetching weather for:', lat, lon)
   const pointsRes = await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`)
   const points = await pointsRes.json()
   city.value = points.properties.relativeLocation.properties.city
@@ -107,30 +191,55 @@ async function fetchWeather(lat, lon) {
 
   description.value = props.textDescription || 'Clear'
 
-  // Determine day/night using API's isDaytime flag
-  isDay.value = forecast.properties.periods[0].isDaytime
+  // Determine day/night using astronomical calculation
+  const sunTimes = calculateSunTimes(lat, lon)
+  isDay.value = isDaytimeByLocation(lat, lon)
+
+  console.log('Sunrise/Sunset calculation:', {
+    sunrise: `${Math.floor(sunTimes.sunrise)}:${String(Math.round((sunTimes.sunrise % 1) * 60)).padStart(2, '0')}`,
+    sunset: `${Math.floor(sunTimes.sunset)}:${String(Math.round((sunTimes.sunset % 1) * 60)).padStart(2, '0')}`,
+    isDaytime: isDay.value
+  })
 
   iconUrl.value = `/weather-icons/${getIcon(description.value, isDay.value)}`
 
   loading.value = false
+  emit('loaded')
 }
 
 onMounted(() => {
   const interval = setInterval(() => {
     if (coords.value.latitude !== Infinity) {
       clearInterval(interval)
-      fetchWeather(coords.value.latitude, coords.value.longitude)
+      fetchWeather(coords.value.latitude, coords.value.longitude).catch(() => {
+        hasError.value = true
+        loading.value = false
+        emit('loaded')
+      })
     }
   }, 100)
-  setTimeout(() => clearInterval(interval), 10000)
+  // Timeout fallback - emit loaded even if geolocation fails
+  setTimeout(() => {
+    clearInterval(interval)
+    if (loading.value) {
+      hasError.value = true
+      loading.value = false
+      emit('loaded')
+    }
+  }, 10000)
 })
+
 </script>
 
 <template>
-  <div class="weather-widget" :class="{ [bgClass]: !loading }">
+  <div class="weather-widget" :class="{ [bgClass]: !loading && !hasError }">
     <div v-if="loading" class="loading-state">
       <img src="/icons/cloud-off.svg" alt="loading">
       <span>Gathering weather data</span>
+    </div>
+    <div v-else-if="hasError" class="loading-state">
+      <img src="/icons/cloud-off.svg" alt="unavailable" class="error-icon">
+      <span>Weather data unavailable</span>
     </div>
     <template v-else>
       <!-- Background SVG -->
@@ -197,6 +306,11 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.error-icon {
+  filter: invert(27%) sepia(94%) saturate(5086%) hue-rotate(354deg) brightness(91%) contrast(119%);
+}
+
+
 /* Weather backgrounds using Bulma colors with transparency */
 /* Day backgrounds */
 .bg-storm { background-color: color-mix(in srgb, var(--bulma-grey-dark) 50%, transparent); }
@@ -224,17 +338,7 @@ onMounted(() => {
 .bg-hot-night .temp,
 .bg-cold-night .temp,
 .bg-clear-night .temp {
-  color: color-mix(in srgb, var(--bulma-white) 95%, transparent);
-}
-
-.bg-storm-night .city-name,
-.bg-snow-night .city-name,
-.bg-rain-night .city-name,
-.bg-cloudy-night .city-name,
-.bg-hot-night .city-name,
-.bg-cold-night .city-name,
-.bg-clear-night .city-name {
-  color: color-mix(in srgb, var(--bulma-white) 75%, transparent);
+  color: var(--bulma-white);
 }
 
 .bg-storm-night .stat,
@@ -244,7 +348,7 @@ onMounted(() => {
 .bg-hot-night .stat,
 .bg-cold-night .stat,
 .bg-clear-night .stat {
-  color: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+  color: var(--bulma-white);
 }
 
 /* Night mode - enhance icon visibility */
@@ -283,7 +387,7 @@ onMounted(() => {
   right: 0.5rem;
   font-size: 0.7rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--bulma-text) 70%, transparent);
+  color: var(--bulma-text-strong);
   z-index: 1;
   text-align: right;
   max-width: 45%;
@@ -300,7 +404,7 @@ onMounted(() => {
 .bg-hot-night .weather-description-top,
 .bg-cold-night .weather-description-top,
 .bg-clear-night .weather-description-top {
-  color: color-mix(in srgb, var(--bulma-white) 80%, transparent);
+  color: var(--bulma-white);
 }
 
 .center-content {
@@ -317,20 +421,24 @@ onMounted(() => {
   font-size: 3.5rem;
   font-weight: 700;
   margin: 0;
-  color: color-mix(in srgb, var(--bulma-text-strong) 85%, transparent);
+  color: var(--bulma-text-strong);
   line-height: 1;
+  position: relative;
+  display: inline-block;
 }
 
 .degree {
   font-size: 2rem;
-  vertical-align: super;
+  position: absolute;
+  top: 0;
+  right: -0.8rem;
 }
 
 .city-name {
   font-size: 0.75rem;
   font-weight: 600;
   margin: 4px 0 0 0;
-  color: color-mix(in srgb, var(--bulma-text) 60%, transparent);
+  color: var(--bulma-text-strong);
 }
 
 /* Night mode - lighter city name text */
@@ -341,7 +449,7 @@ onMounted(() => {
 .bg-hot-night .city-name,
 .bg-cold-night .city-name,
 .bg-clear-night .city-name {
-  color: color-mix(in srgb, var(--bulma-white) 75%, transparent);
+  color: var(--bulma-white);
 }
 
 .bottom-bar {
@@ -359,7 +467,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  color: color-mix(in srgb, var(--bulma-text-strong) 85%, transparent);
+  color: var(--bulma-text-strong);
 }
 
 .stat img {
