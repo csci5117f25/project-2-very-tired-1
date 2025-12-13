@@ -1,6 +1,6 @@
 <script setup>
 import { useCollection } from 'vuefire'
-import { collection, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore'
+import { collection, getDocs, doc, deleteDoc, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase_conf'
 import { useRoute } from 'vue-router'
 import { computed, ref, watch } from 'vue'
@@ -41,12 +41,13 @@ const endOfDay = computed(
 
 const hikesQuery = computed(() => {
   if (!paramsExist.value) {
-    return collection(db, 'users', uid.value, 'hikes')
+    return query(collection(db, 'users', uid.value, 'hikes'), orderBy('createdAt', 'desc'))
   } else {
     return query(
       collection(db, 'users', uid.value, 'hikes'),
       where('createdAt', '>=', startOfDay.value),
       where('createdAt', '<=', endOfDay.value),
+      orderBy('createdAt', 'desc'),
     )
   }
 })
