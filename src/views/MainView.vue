@@ -177,6 +177,7 @@ async function handleLogout() {
   padding: 5vh 3vw 10vh 3vw;
   opacity: 0;
   transition: opacity 0.3s ease;
+  overflow: hidden; /* Prevents page scroll on mobile */
 }
 
 .row {
@@ -220,6 +221,7 @@ async function handleLogout() {
   width: 100%;
   height: 100%;
   position: relative;
+  touch-action: none; /* Prevents browser scroll from intercepting swipe gestures */
 }
 
 /* Loading overlay */
