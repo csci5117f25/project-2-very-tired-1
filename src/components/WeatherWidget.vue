@@ -268,6 +268,11 @@ onMounted(() => {
   z-index: 0;
   pointer-events: none;
   object-fit: contain;
+  /* Fix for animated SVGs on iOS */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  image-rendering: auto;
+  shape-rendering: geometricPrecision;
 }
 
 .weather-description-top {
