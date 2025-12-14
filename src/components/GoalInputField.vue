@@ -66,7 +66,7 @@ async function updateGoal() {
 
 <style scoped>
 .setting-label {
-  width: 25vw;
+  width: 25%;
   font-size: 1.2rem;
   color: var(--color);
 }
@@ -82,7 +82,7 @@ async function updateGoal() {
   border-radius: 20px;
   height: 28px;
   text-align: center;
-  width: 45vw;
+  width: 90%;
   transition: border 0.2s ease;
 }
 

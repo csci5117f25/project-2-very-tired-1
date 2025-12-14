@@ -10,6 +10,7 @@ import BackButton from '@/components/BackButton.vue'
 import LongGoalCard from '@/components/LongGoalCard.vue'
 import GoalCard from '@/components/GoalCard.vue'
 import GoalInputField from '@/components/GoalInputField.vue'
+import ProfilePic from '@/components/ProfilePic.vue'
 
 // --- constants: progress bar colors ---
 const clrDistance = '#4de375'
@@ -19,6 +20,8 @@ const clrPhotos = '#4d78e3'
 // --- auth ---
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
+const userName = computed(() => user.value?.displayName)
+const userAvatar = computed(() => user.value?.photoURL)
 
 // --- state: goal type switching ---
 const types = ref(['weekly', 'monthly', 'annualy'])
@@ -94,97 +97,122 @@ const totalPhotos = computed(() => {
   }
   return count
 })
+// --- computed: month, week, year
+const currentDate = new Date().toLocaleDateString(undefined, {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+})
 </script>
 
 <template>
-  <div class="overview">
-    <LongGoalCard
-      class="long-card"
-      :count1="Number((userData.totalDistance / 1000).toFixed(2))"
-      :count2="userData.totalElevation"
-    >
-      <template #svg1>
-        <b-icon icon="shoe-print" size="is-large" type="is-dark"></b-icon>
-      </template>
-
-      <template #svg2>
-        <b-icon icon="stairs" size="is-large" type="is-dark"></b-icon>
-      </template>
-    </LongGoalCard>
-
-    <div class="entry">
-      <GoalCard :count="userData.totalPhotos" :unit="'Photo Takens'"></GoalCard>
-      <GoalCard :count="userData.totalHikes" :unit="'Hikes Traveled'"></GoalCard>
+  <div class="wrapper">
+    <div class="nav">
+      <h2>Dash board</h2>
     </div>
-  </div>
+    <div class="info">
+      <profile-pic :src="userAvatar" :size="100" style="cursor: pointer" @click="handleLogout" />
+      <p class="userName">Welcome back {{ userName }} !</p>
+      <p class="date">Today is {{ currentDate }}</p>
+    </div>
+    <div class="overview">
+      <LongGoalCard
+        class="long-card"
+        :count1="Number((userData.totalDistance / 1000).toFixed(2))"
+        :count2="userData.totalElevation"
+      >
+        <template #svg1>
+          <b-icon icon="shoe-print" size="is-large" type="is-dark"></b-icon>
+        </template>
 
-  <div class="goal has-background-primary">
-    <h2 class="label">{{ goals?.type }}</h2>
-    <div class="progressBar-list">
-      <div class="nav-btn" @click="previous">
-        <b-icon icon="chevron-left" size="is-medium" type="is-dark"></b-icon>
-      </div>
+        <template #svg2>
+          <b-icon icon="stairs" size="is-large" type="is-dark"></b-icon>
+        </template>
+      </LongGoalCard>
 
-      <ProgressBar
-        :key="goals.type + 'distance'"
-        :current="Number(totalKms.toFixed(2))"
-        :target="goals.distanceKmTarget"
-        :color="clrDistance"
-        :unit="'KMs'"
-      />
-
-      <ProgressBar
-        :key="goals.type + 'hikes'"
-        :current="totalHikes"
-        :target="goals?.hikesTarget"
-        :color="clrHikes"
-        :unit="'HIKES'"
-      />
-
-      <ProgressBar
-        :key="goals.type + 'photos'"
-        :current="totalPhotos"
-        :target="goals?.photosTarget"
-        :color="clrPhotos"
-        :unit="'PHOTOS'"
-      />
-
-      <div class="nav-btn" @click="next">
-        <b-icon icon="chevron-right" size="is-medium" type="is-dark"></b-icon>
+      <div class="entry">
+        <GoalCard :count="userData.totalPhotos" :unit="'Photo Takens'"></GoalCard>
+        <GoalCard :count="userData.totalHikes" :unit="'Hikes Traveled'"></GoalCard>
       </div>
     </div>
 
-    <div class="setting">
-      <GoalInputField
-        :key="goals.type + 'distanceTarget'"
-        :unit="'Distance'"
-        :type="type"
-        :target="goals?.distanceKmTarget || 0"
-        :color="clrDistance"
-      />
+    <div class="goal has-background-primary">
+      <h2 class="label">{{ goals?.type }}</h2>
+      <div class="progressBar-list">
+        <div class="nav-btn" @click="previous">
+          <b-icon icon="chevron-left" size="is-medium" type="is-dark"></b-icon>
+        </div>
 
-      <GoalInputField
-        :key="goals.type + 'hikesTarget'"
-        :unit="'Hikes'"
-        :type="type"
-        :target="goals?.hikesTarget || 0"
-        :color="clrHikes"
-      />
+        <ProgressBar
+          :key="goals.type + 'distance'"
+          :current="Number(totalKms.toFixed(2))"
+          :target="goals.distanceKmTarget"
+          :color="clrDistance"
+          :unit="'KMs'"
+        />
 
-      <GoalInputField
-        :key="goals.type + 'photosTarget'"
-        :unit="'Photos'"
-        :type="type"
-        :target="goals?.photosTarget || 0"
-        :color="clrPhotos"
-      />
+        <ProgressBar
+          :key="goals.type + 'hikes'"
+          :current="totalHikes"
+          :target="goals?.hikesTarget"
+          :color="clrHikes"
+          :unit="'HIKES'"
+        />
+
+        <ProgressBar
+          :key="goals.type + 'photos'"
+          :current="totalPhotos"
+          :target="goals?.photosTarget"
+          :color="clrPhotos"
+          :unit="'PHOTOS'"
+        />
+
+        <div class="nav-btn" @click="next">
+          <b-icon icon="chevron-right" size="is-medium" type="is-dark"></b-icon>
+        </div>
+      </div>
+
+      <div class="setting">
+        <GoalInputField
+          :key="goals.type + 'distanceTarget'"
+          :unit="'Distance'"
+          :type="type"
+          :target="goals?.distanceKmTarget || 0"
+          :color="clrDistance"
+        />
+
+        <GoalInputField
+          :key="goals.type + 'hikesTarget'"
+          :unit="'Hikes'"
+          :type="type"
+          :target="goals?.hikesTarget || 0"
+          :color="clrHikes"
+        />
+
+        <GoalInputField
+          :key="goals.type + 'photosTarget'"
+          :unit="'Photos'"
+          :type="type"
+          :target="goals?.photosTarget || 0"
+          :color="clrPhotos"
+        />
+      </div>
     </div>
   </div>
-
   <BackButton></BackButton>
 </template>
 
 <style scoped>
+.nav {
+  border-bottom: 2 solid #fff;
+}
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+}
 .overview {
   display: flex;
   gap: 16px;
@@ -238,5 +266,16 @@ const totalPhotos = computed(() => {
 .setting-entry {
   display: flex;
   height: 5vh;
+}
+
+.wrapper {
+  margin-top: 10px;
+  width: 100%;
+}
+@media (min-width: 500px) {
+  .wrapper {
+    width: calc(500px + (900px - 500px) * ((100vw - 500px) / (1920px - 500px)));
+    margin: 0 auto;
+  }
 }
 </style>
