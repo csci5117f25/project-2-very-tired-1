@@ -30,8 +30,9 @@ console.log(props.src)
 
 .avatar-ring {
   height: 80%;
+  max-height: 120px;
+  aspect-ratio: 1;
   display: flex;
-
   padding: 4.5px;
   border-radius: 50%;
   background-color: var(--bulma-primary);

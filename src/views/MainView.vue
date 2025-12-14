@@ -191,6 +191,7 @@ async function handleLogout() {
 
 .row-header {
   flex: 0.8;
+  max-height: 180px;
 }
 
 .weather-card {
@@ -220,6 +221,7 @@ async function handleLogout() {
 .row-collage {
   flex: 1;
   max-height: 260px;
+  margin-top: 24px;
 }
 
 .calendar-card-wrapper {
@@ -255,6 +257,7 @@ async function handleLogout() {
   .row-collage {
     flex: 0.9;
     max-height: 220px;
+    margin-top: 20px;
   }
 
   .row-calendar {

@@ -103,7 +103,7 @@ const gridClass = computed(() => {
 
 .collage-title {
   position: absolute;
-  top: -28px;
+  top: -24px;
   left: calc(100% / 6);
   transform: translateX(-50%);
   font-size: 0.9rem;
