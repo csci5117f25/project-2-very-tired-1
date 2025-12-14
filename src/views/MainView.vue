@@ -174,8 +174,10 @@ async function handleLogout() {
   display: flex;
   flex-direction: column;
   gap: 25px;
-  height: 100vh;
+  height: 100vh; /* Fallback for older browsers */
+  height: 100dvh; /* Dynamic viewport height - accounts for browser chrome */
   padding: 5vh 3vw 10vh 3vw;
+  padding: 5dvh 3vw 10dvh 3vw; /* Dynamic viewport units for padding too */
   opacity: 0;
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevents page scroll on mobile */
