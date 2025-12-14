@@ -3,7 +3,7 @@
 const props = defineProps({
   src: { type: String, default: null },
   alt: { type: String, default: 'Profile Picture' },
-  size: { type: Number, default: 150 },
+  userName: { type: String, required: true },
 })
 
 const srcToUse = props.src
@@ -11,21 +11,45 @@ console.log(props.src)
 </script>
 
 <template>
-  <div class="avatar-wrapper" :style="{ width: size + 'px', height: size + 'px' }">
-    <img :src="srcToUse" :alt="alt" class="avatar-img" referrerpolicy="no-referrer" />
+  <div class="avatar-wrapper">
+    <div class="avatar-ring">
+      <img :src="srcToUse" :alt="alt" class="avatar-img" referrerpolicy="no-referrer" />
+    </div>
+    <div class="userName">{{ userName }}</div>
   </div>
 </template>
 
 <style scoped>
 .avatar-wrapper {
-  border-radius: 50%;
-  overflow: hidden;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.avatar-ring {
+  height: 80%;
+  display: flex;
+
+  padding: 4.5px;
+  border-radius: 50%;
+  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
 }
 
 .avatar-img {
   border-radius: 50%;
+
+  border: 5px solid var(--bulma-background);
+  box-sizing: border-box;
+}
+
+.userName {
+  border-radius: 5px;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 550;
+  color: var(--bulma-text);
 }
 </style>

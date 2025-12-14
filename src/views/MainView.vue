@@ -10,6 +10,7 @@ const router = useRouter()
 const { signOut, user } = useAuth()
 
 const avatarURL = computed(() => user.value?.photoURL)
+const userName = computed(() => user.value?.displayName)
 
 async function handleLogout() {
   await signOut()
@@ -21,7 +22,12 @@ async function handleLogout() {
   <div class="rows">
     <div class="row">
       <div class="profile-column">
-        <profile-pic :src="avatarURL" :size="150" style="cursor: pointer" @click="handleLogout" />
+        <profile-pic
+          :src="avatarURL"
+          style="cursor: pointer"
+          :userName="userName"
+          @click="handleLogout"
+        />
       </div>
       <div class="weather-card">
         <WeatherWidget />
@@ -113,6 +119,7 @@ async function handleLogout() {
 
 .profile-column {
   width: 50%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
