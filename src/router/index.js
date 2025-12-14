@@ -25,6 +25,15 @@ const routes = [
     path: '/calendar',
     component: CalendarView,
   },
+  {
+    path: '/goals',
+    component: GoalView,
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'Not-Found',
+    component: NotFoundView,
+  },
 ]
 
 const router = createRouter({
