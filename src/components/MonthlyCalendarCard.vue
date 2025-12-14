@@ -169,7 +169,7 @@ const monthName = computed(() => {
 }
 
 .card-content {
-  padding: 0.75rem 0.75rem 1rem 0.75rem;
+  padding: 0.75rem 0.75rem 1.25rem 0.75rem;
   background-color: var(--bulma-text-15-soft);
   display: flex;
   flex-direction: column;
@@ -215,7 +215,7 @@ const monthName = computed(() => {
   vertical-align: middle;
   padding: 0;
   box-sizing: border-box;
-  height: 32px;
+  height: 34px;
 }
 
 .calendar-table td.empty {
@@ -227,11 +227,11 @@ const monthName = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 2px solid var(--bulma-border);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--bulma-dark);
   box-sizing: border-box;
@@ -246,7 +246,7 @@ const monthName = computed(() => {
 /* Days with hikes - teal circle with boot icon */
 .hike-icon {
   background-color: var(--bulma-primary);
-  padding: 6px;
+  padding: 7px;
 }
 
 .hike-icon img {
@@ -261,11 +261,11 @@ const monthName = computed(() => {
 
 /* Streak column */
 .streak-header {
-  width: 36px;
+  width: 40px;
 }
 
 .streak-cell {
-  width: 36px;
+  width: 40px;
   padding: 0 !important;
   vertical-align: middle;
 }
@@ -275,52 +275,99 @@ const monthName = computed(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 32px;
+  min-height: 34px;
 }
 
 .streak-check {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   overflow: hidden;
 }
 
 .streak-circle {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 2px solid var(--bulma-primary);
   box-sizing: border-box;
 }
 
+/* Small width screens - keep circles large and tight */
 @media (max-width: 400px) {
   .card-content {
-    padding: 0.5rem;
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
   }
 
   .day-circle {
-    width: 24px;
-    height: 24px;
-    font-size: 0.6rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
   }
 
   .calendar-table th {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
+  }
+
+  .calendar-table td {
+    height: 30px;
+  }
+
+  .hike-icon {
+    width: 30px;
+    height: 30px;
+    padding: 6px;
+  }
+
+  .streak-header,
+  .streak-cell {
+    width: 34px;
+  }
+
+  .streak-indicator {
+    min-height: 30px;
+  }
+
+  .streak-check,
+  .streak-circle {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Small height screens - keep circles large and tight */
+@media (max-height: 750px) {
+  .card-content {
+    padding: 0.4rem 0.4rem 0.75rem 0.4rem;
+  }
+
+  .card-header-row {
+    margin-bottom: 0.15rem;
+  }
+
+  .card-header-row .title {
+    font-size: 0.95rem;
   }
 
   .calendar-table td {
     height: 28px;
   }
 
+  .day-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.65rem;
+  }
+
   .hike-icon {
-    width: 24px;
-    height: 24px;
-    padding: 4px;
+    width: 28px;
+    height: 28px;
+    padding: 5px;
   }
 
   .streak-header,
   .streak-cell {
-    width: 30px;
+    width: 32px;
   }
 
   .streak-indicator {
@@ -329,54 +376,8 @@ const monthName = computed(() => {
 
   .streak-check,
   .streak-circle {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-/* Small height screens - more compact layout */
-@media (max-height: 750px) {
-  .card-content {
-    padding: 0.4rem;
-  }
-
-  .card-header-row {
-    margin-bottom: 0.25rem;
-  }
-
-  .card-header-row .title {
-    font-size: 0.95rem;
-  }
-
-  .calendar-table td {
-    height: 26px;
-  }
-
-  .day-circle {
-    width: 22px;
-    height: 22px;
-    font-size: 0.55rem;
-  }
-
-  .hike-icon {
-    width: 22px;
-    height: 22px;
-    padding: 3px;
-  }
-
-  .streak-header,
-  .streak-cell {
     width: 28px;
-  }
-
-  .streak-indicator {
-    min-height: 26px;
-  }
-
-  .streak-check,
-  .streak-circle {
-    width: 22px;
-    height: 22px;
+    height: 28px;
   }
 }
 </style>
