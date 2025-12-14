@@ -8,6 +8,7 @@ import StartHikeView from '@/views/StartHikeView.vue'
 import PreviousHikesView from '@/views/PreviousHikesView.vue'
 import CalendarView from '@/views/CalendarView.vue'
 import GoalView from '@/views/GoalView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes = [
   { path: '/', name: 'Main', component: MainView },
@@ -23,10 +24,6 @@ const routes = [
   {
     path: '/calendar',
     component: CalendarView,
-  },
-  {
-    path: '/goals',
-    component: GoalView,
   },
 ]
 
