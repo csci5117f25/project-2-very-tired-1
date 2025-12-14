@@ -30,7 +30,7 @@ const goToLink = () => {
   <div
     class="card-wrapper"
     :class="{ 'has-background-primary': !backgroundColor }"
-    :style="{ 
+    :style="{
       width: computedWidth,
       backgroundColor: backgroundColor || undefined
     }"
@@ -54,6 +54,8 @@ const goToLink = () => {
   display: flex;
   height: 100%;
   border-radius: 20px;
+  border: 2px solid var(--bulma-border);
+  box-shadow: 0 4px 12px var(--bulma-text-50);
   align-items: center;
   justify-content: center;
   padding: 0 20px;

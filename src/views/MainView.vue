@@ -168,9 +168,9 @@ async function handleLogout() {
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 12px;
   height: 100vh;
-  padding: 3vh 3vw 5vh 3vw; /* Reduced padding for mobile browsers */
+  padding: 2vh 3vw 3vh 3vw;
   opacity: 0;
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevents page scroll on mobile */
@@ -240,24 +240,20 @@ async function handleLogout() {
   min-height: 80px;
 }
 
-/* Small screens - adjust layout to fit calendar */
-@media (max-height: 750px) {
+/* Mobile screens - tighter layout for calendar */
+@media (max-height: 900px) {
   .rows {
-    gap: 10px;
-    padding: 2vh 3vw;
-  }
-
-  .row {
-    flex: 0.8;
+    gap: 8px;
+    padding: 1.5vh 3vw 2vh 3vw;
   }
 
   .row-calendar {
-    flex: 1.5;
+    flex: 1.6;
   }
 
   .row-actions {
     flex: 0.5;
-    min-height: 60px;
+    min-height: 55px;
   }
 }
 
