@@ -45,6 +45,8 @@ function getIcon(forecast, isDay) {
   return isDay ? 'day.svg' : 'night.svg'
 }
 
+// Feels like temperature calculation
+// Reference: https://climate.umt.edu/mesonet/ag_tools/feels_like/
 function calcFeelsLike(t, v, rh) {
   if (t < 50 && v > 3) {
     return 35.74 + 0.6215 * t - 35.75 * Math.pow(v, 0.16) + 0.4275 * t * Math.pow(v, 0.16)
