@@ -169,7 +169,7 @@ const monthName = computed(() => {
 }
 
 .card-content {
-  padding: 0.75rem;
+  padding: 0.75rem 0.75rem 1rem 0.75rem;
   background-color: var(--bulma-text-15-soft);
   display: flex;
   flex-direction: column;
@@ -177,7 +177,7 @@ const monthName = computed(() => {
 }
 
 .card-header-row {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .card-header-row .title {
@@ -213,7 +213,7 @@ const monthName = computed(() => {
 .calendar-table td {
   text-align: center;
   vertical-align: middle;
-  padding: 2px;
+  padding: 0;
   box-sizing: border-box;
   height: 32px;
 }
@@ -227,11 +227,11 @@ const monthName = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--bulma-border);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--bulma-dark);
   box-sizing: border-box;
@@ -246,7 +246,7 @@ const monthName = computed(() => {
 /* Days with hikes - teal circle with boot icon */
 .hike-icon {
   background-color: var(--bulma-primary);
-  padding: 5px;
+  padding: 6px;
 }
 
 .hike-icon img {
@@ -279,15 +279,15 @@ const monthName = computed(() => {
 }
 
 .streak-check {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   overflow: hidden;
 }
 
 .streak-circle {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--bulma-primary);
   box-sizing: border-box;
