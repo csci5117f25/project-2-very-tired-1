@@ -1,14 +1,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSwipe } from '@vueuse/core'
-import { collection, query, orderBy } from 'firebase/firestore'
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import { db } from '@/firebase_conf'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
 import WeatherWidget from '@/components/WeatherWidget.vue'
-import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
+import HikeCollageCard from '@/components/HikeCollageCard.vue'
 import MonthlyCalendarCard from '@/components/MonthlyCalendarCard.vue'
 import { useAuth } from '@/composables/useAuth'
 
@@ -29,20 +28,42 @@ const hikesQuery = computed(() => {
 })
 
 const hikes = useCollection(hikesQuery)
-const currentHikeIndex = ref(0)
+const hikesWithPhotos = ref([])
 const hikesLoaded = ref(false)
 
-// Mark loaded when hikes arrive OR after timeout (for users with no hikes)
-watch([hikes, uid], ([newHikes, newUid]) => {
-  if (newHikes?.length > 0) {
+// Fetch photos for each hike when hikes change
+watch([hikes, uid], async ([newHikes, newUid]) => {
+  if (newHikes?.length > 0 && newUid) {
+    // Fetch first photo for each hike (for collage display)
+    const hikesData = await Promise.all(
+      newHikes.slice(0, 6).map(async (hike) => {
+        try {
+          const photosQuery = query(
+            collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+          )
+          const photosSnapshot = await getDocs(photosQuery)
+          const firstPhoto = photosSnapshot.docs[0]?.data()
+
+          return {
+            ...hike,
+            id: hike.id,
+            photoUrl: firstPhoto?.downloadURL || null,
+          }
+        } catch (error) {
+          console.error(`Error fetching photos for hike ${hike.id}:`, error)
+          return { ...hike, id: hike.id, photoUrl: null }
+        }
+      })
+    )
+    hikesWithPhotos.value = hikesData
     hikesLoaded.value = true
-    currentHikeIndex.value = 0
   } else if (newUid && !hikesLoaded.value) {
     setTimeout(() => { hikesLoaded.value = true }, 1000)
   }
 }, { immediate: true })
 
-const currentHike = computed(() => hikes.value?.[currentHikeIndex.value] || null)
 const hikesLoading = computed(() => !hikesLoaded.value)
 
 // Page loading state
@@ -54,22 +75,6 @@ setTimeout(() => {
   weatherLoaded.value = true
   hikesLoaded.value = true
 }, 5000)
-
-// Swipe handling
-const hikeCardRef = ref(null)
-const { direction } = useSwipe(hikeCardRef, {
-  onSwipeEnd() {
-    if (!hikes.value?.length) return
-
-    if (direction.value === 'up') {
-      // Swipe up = next hike
-      currentHikeIndex.value = (currentHikeIndex.value + 1) % hikes.value.length
-    } else if (direction.value === 'down') {
-      // Swipe down = previous hike
-      currentHikeIndex.value = (currentHikeIndex.value - 1 + hikes.value.length) % hikes.value.length
-    }
-  }
-})
 
 async function handleLogout() {
   await signOut()
@@ -84,7 +89,7 @@ async function handleLogout() {
     </div>
   </transition>
   <div class="rows" :class="{ 'content-ready': pageReady }">
-    <div class="row">
+    <div class="row row-header">
       <div class="profile-column">
         <profile-pic
           :src="avatarURL"
@@ -98,18 +103,11 @@ async function handleLogout() {
       </div>
     </div>
 
-    <div class="row" ref="hikeCardRef">
+    <div class="row row-collage">
       <div class="hike-card-wrapper">
-        <PreviousHikesCard
-          class="previous-hike-card"
-          :hikeId="currentHike?.id"
-          :name="currentHike?.name"
-          :datetime="currentHike?.startedAt"
-          :distance="currentHike?.distanceMeters"
-          :duration="currentHike?.durationSec"
-          :trail="currentHike?.trail"
-          :link="currentHike ? `/previousHikes?scrollTo=${currentHike.id}` : '/previousHikes'"
-          :showTrailInContent="true"
+        <HikeCollageCard
+          :hikes="hikesWithPhotos"
+          :totalCount="hikes?.length || 0"
           :isLoading="hikesLoading"
         />
       </div>
@@ -122,7 +120,7 @@ async function handleLogout() {
     </div>
 
     <div class="row row-actions">
-      <base-card link="/startHike" size="half" title="Start hike">
+      <base-card link="/startHike" size="half" title="Start Hike">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="150"
@@ -169,9 +167,9 @@ async function handleLogout() {
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
   height: 100vh;
-  padding: 2vh 3vw 3vh 3vw;
+  padding: 2vh 5vw 3vh 5vw;
   opacity: 0;
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevents page scroll on mobile */
@@ -191,6 +189,20 @@ async function handleLogout() {
   gap: 20px;
 }
 
+.row-header {
+  flex: 0.8;
+}
+
+.weather-card {
+  width: 50%;
+  height: 100%;
+  max-width: 180px;
+  max-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .profile-column {
   width: 50%;
   height: 100%;
@@ -199,32 +211,15 @@ async function handleLogout() {
   align-items: center;
 }
 
-.weather-card {
-  width: 50%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.previous-hike-card {
-  width: 100%;
-  height: 100%;
-}
-
-.previous-hike-card :deep(.card-image) {
-  display: none;
-}
-
-.previous-hike-card :deep(.delete-button) {
-  display: none;
-}
 
 .hike-card-wrapper {
   width: 100%;
   height: 100%;
-  position: relative;
-  touch-action: none; /* Prevents browser scroll from intercepting swipe gestures */
+}
+
+.row-collage {
+  flex: 1;
+  max-height: 260px;
 }
 
 .calendar-card-wrapper {
@@ -233,7 +228,8 @@ async function handleLogout() {
 }
 
 .row-calendar {
-  flex: 1.4;
+  flex: 0.6;
+  max-height: 160px;
 }
 
 .row-actions {
@@ -241,15 +237,29 @@ async function handleLogout() {
   min-height: 80px;
 }
 
-/* Mobile screens - tighter layout for calendar */
+/* Mobile screens - tighter layout */
 @media (max-height: 900px) {
   .rows {
-    gap: 8px;
-    padding: 1.5vh 3vw 2vh 3vw;
+    gap: 16px;
+    padding: 1.5vh 4vw 2vh 4vw;
+  }
+
+  .row-header {
+    flex: 0.7;
+  }
+
+  .weather-card {
+    max-width: 160px;
+  }
+
+  .row-collage {
+    flex: 0.9;
+    max-height: 220px;
   }
 
   .row-calendar {
-    flex: 1.6;
+    flex: 0.5;
+    max-height: 130px;
   }
 
   .row-actions {

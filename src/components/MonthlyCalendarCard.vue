@@ -13,82 +13,54 @@ const uid = computed(() => user.value?.uid)
 // Current date info
 const today = new Date()
 const currentMonth = today.getMonth()
-const currentYear = today.getFullYear()
 
-// Month boundaries for query
-const monthStart = new Date(currentYear, currentMonth, 1)
-const monthEnd = new Date(currentYear, currentMonth + 1, 1)
+// Get current week (Sunday to Saturday)
+const currentDayOfWeek = today.getDay() // 0 = Sunday
+const weekStart = new Date(today)
+weekStart.setDate(today.getDate() - currentDayOfWeek)
+weekStart.setHours(0, 0, 0, 0)
+
+const weekEnd = new Date(weekStart)
+weekEnd.setDate(weekStart.getDate() + 7)
 
 // Day names for header (Sunday first)
 const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
-// Generate calendar rows (6 rows x 7 columns)
-const calendarRows = computed(() => {
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-  const rows = []
-  let dayCounter = 1
-
-  for (let row = 0; row < 6; row++) {
-    const week = []
-    for (let col = 0; col < 7; col++) {
-      const cellIndex = row * 7 + col
-      if (cellIndex < firstDayOfMonth || dayCounter > daysInMonth) {
-        week.push({ empty: true })
-      } else {
-        const date = new Date(currentYear, currentMonth, dayCounter)
-        week.push({
-          dayNumber: dayCounter,
-          isToday: date.toDateString() === today.toDateString(),
-          date: date,
-        })
-        dayCounter++
-      }
-    }
-    rows.push(week)
+// Generate current week days
+const weekDays = computed(() => {
+  const days = []
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(weekStart)
+    date.setDate(weekStart.getDate() + i)
+    days.push({
+      dayNumber: date.getDate(),
+      isToday: date.toDateString() === today.toDateString(),
+      date: date,
+    })
   }
-
-  return rows
+  return days
 })
 
-// Filter out completely empty rows (for months that don't need 6 weeks)
-const visibleCalendarRows = computed(() => {
-  return calendarRows.value.filter((week) => week.some((day) => !day.empty))
-})
-
-// Query hikes for current month
+// Query hikes for current week
 const hikesQuery = computed(() => {
   if (!uid.value) return null
 
   return query(
     collection(db, 'users', uid.value, 'hikes'),
-    where('startedAt', '>=', monthStart),
-    where('startedAt', '<', monthEnd),
+    where('startedAt', '>=', weekStart),
+    where('startedAt', '<', weekEnd),
   )
 })
 
-const monthHikes = useCollection(hikesQuery)
+const weekHikes = useCollection(hikesQuery)
 
 // Check if a day has hikes
 const hasHikeOnDay = (day) => {
-  if (!monthHikes.value?.length || day.empty) return false
+  if (!weekHikes.value?.length) return false
 
-  return monthHikes.value.some((hike) => {
+  return weekHikes.value.some((hike) => {
     const hikeDate = hike.startedAt?.toDate?.() || new Date(hike.startedAt)
     return hikeDate.toDateString() === day.date.toDateString()
-  })
-}
-
-// Check if a week row has any hikes
-const weekHasHike = (week) => {
-  if (!monthHikes.value?.length) return false
-
-  return week.some((day) => {
-    if (day.empty) return false
-    return monthHikes.value.some((hike) => {
-      const hikeDate = hike.startedAt?.toDate?.() || new Date(hike.startedAt)
-      return hikeDate.toDateString() === day.date.toDateString()
-    })
   })
 }
 
@@ -100,153 +72,137 @@ const goToCalendar = () => {
   })
 }
 
-// Month name for header
-const monthName = computed(() => {
-  return today.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+// Week range for header (e.g., "Dec 8 - 14" or "Dec 29 - Jan 4")
+const weekRange = computed(() => {
+  const startMonth = weekStart.toLocaleString('en-US', { month: 'short' })
+  const startDay = weekStart.getDate()
+  
+  const lastDay = new Date(weekEnd)
+  lastDay.setDate(weekEnd.getDate() - 1)
+  const endMonth = lastDay.toLocaleString('en-US', { month: 'short' })
+  const endDay = lastDay.getDate()
+  
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay} - ${endDay}`
+  } else {
+    return `${startMonth} ${startDay} - ${endMonth} ${endDay}`
+  }
 })
 </script>
 
 <template>
-  <div class="card monthly-card" @click="goToCalendar">
+  <div class="card weekly-card">
     <div class="card-content">
       <div class="card-header-row">
-        <p class="title">{{ monthName }}</p>
+        <p class="title">{{ weekRange }}</p>
+        <p class="calendar-link" @click="goToCalendar">View Full Calendar</p>
       </div>
 
-      <table class="calendar-table">
-        <thead>
-          <tr>
-            <th v-for="name in dayNames" :key="name">{{ name }}</th>
-            <th class="streak-header"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(week, rowIdx) in visibleCalendarRows" :key="rowIdx">
-            <td
-              v-for="(day, colIdx) in week"
-              :key="colIdx"
-              :class="{
-                empty: day.empty,
-                'is-today': day.isToday,
-              }"
-            >
-              <template v-if="!day.empty">
-                <span v-if="hasHikeOnDay(day)" class="day-circle hike-icon">
-                  <img src="/calendar-icons/noun-hiking-boot-8115251.svg" alt="hike">
-                </span>
-                <span v-else class="day-circle">{{ day.dayNumber }}</span>
-              </template>
-            </td>
-            <!-- Streak indicator cell -->
-            <td class="streak-cell">
-              <div class="streak-indicator">
-                <img
-                  v-if="weekHasHike(week)"
-                  class="streak-check"
-                  src="/calendar-icons/noun-checkmark-3345738.svg"
-                  alt="completed"
-                >
-                <div v-else class="streak-circle"></div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <div class="week-row">
+        <div
+          v-for="(day, idx) in weekDays"
+          :key="idx"
+          class="day-cell"
+          :class="{ 'is-today': day.isToday }"
+        >
+          <span class="day-name">{{ dayNames[idx] }}</span>
+          <span v-if="hasHikeOnDay(day)" class="day-circle hike-icon">
+            <img src="/calendar-icons/noun-hiking-boot-8115251.svg" alt="hike">
+          </span>
+          <span v-else class="day-circle">{{ day.dayNumber }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.monthly-card {
-  cursor: pointer;
+.weekly-card {
   overflow: hidden;
-  border: 2px solid var(--bulma-border);
-  border-radius: 15px;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px var(--bulma-text-50);
+  box-shadow: var(--card-shadow);
 }
 
 .card-content {
-  padding: 0.75rem 0.75rem 1.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   background-color: var(--bulma-text-15-soft);
   display: flex;
   flex-direction: column;
   height: 100%;
+  gap: 0.25rem;
 }
 
 .card-header-row {
-  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .card-header-row .title {
   margin-bottom: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--bulma-text-70-bold);
 }
 
-.calendar-table {
+.calendar-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bulma-dark);
+  margin: 0;
+  cursor: pointer;
+}
+
+.week-row {
   flex: 1;
-  width: 100%;
-  border-collapse: collapse;
-  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
 }
 
-.calendar-table thead {
-  height: 18px;
+.day-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
-.calendar-table th {
+.day-name {
   font-size: 0.65rem;
   font-weight: bold;
   color: var(--bulma-text-40-bold);
-  text-align: center;
-  padding: 1px 0;
-  height: 18px;
+  text-transform: uppercase;
 }
 
-.calendar-table tbody tr {
-  height: 1px; /* Allow equal distribution */
-}
-
-.calendar-table td {
-  text-align: center;
-  vertical-align: middle;
-  padding: 0;
-  box-sizing: border-box;
-  height: 34px;
-}
-
-.calendar-table td.empty {
-  visibility: hidden;
-}
-
-/* Day circle - same size as hike icon */
 .day-circle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 2px solid var(--bulma-border);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--bulma-dark);
   box-sizing: border-box;
 }
 
-/* Today - dark black outline */
-.calendar-table td.is-today .day-circle {
+/* Today - dark outline */
+.day-cell.is-today .day-circle {
   border-color: var(--bulma-dark);
-  border-width: 2px;
 }
 
 /* Days with hikes - teal circle with boot icon */
 .hike-icon {
   background-color: var(--bulma-primary);
-  padding: 7px;
+  padding: 8px;
+  border-color: transparent;
 }
 
 .hike-icon img {
@@ -254,130 +210,51 @@ const monthName = computed(() => {
   height: 100%;
 }
 
-/* Today with hike - black border on the circle */
-.calendar-table td.is-today .day-circle.hike-icon {
+/* Today with hike - black border */
+.day-cell.is-today .day-circle.hike-icon {
   border: 2px solid var(--bulma-dark);
 }
 
-/* Streak column */
-.streak-header {
-  width: 40px;
-}
-
-.streak-cell {
-  width: 40px;
-  padding: 0 !important;
-  vertical-align: middle;
-}
-
-.streak-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 34px;
-}
-
-.streak-check {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.streak-circle {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid var(--bulma-primary);
-  box-sizing: border-box;
-}
-
-/* Small width screens - keep circles large and tight */
+/* Small width screens */
 @media (max-width: 400px) {
   .card-content {
-    padding: 0.5rem 0.5rem 1.25rem 0.5rem;
+    padding: 0.5rem;
   }
 
   .day-circle {
-    width: 30px;
-    height: 30px;
-    font-size: 0.7rem;
-  }
-
-  .calendar-table th {
-    font-size: 0.5rem;
-  }
-
-  .calendar-table td {
-    height: 30px;
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 
   .hike-icon {
-    width: 30px;
-    height: 30px;
-    padding: 6px;
+    padding: 7px;
   }
 
-  .streak-header,
-  .streak-cell {
-    width: 34px;
-  }
-
-  .streak-indicator {
-    min-height: 30px;
-  }
-
-  .streak-check,
-  .streak-circle {
-    width: 30px;
-    height: 30px;
+  .day-name {
+    font-size: 0.55rem;
   }
 }
 
-/* Small height screens - keep circles large and tight */
+/* Small height screens */
 @media (max-height: 750px) {
   .card-content {
-    padding: 0.4rem 0.4rem 1rem 0.4rem;
-  }
-
-  .card-header-row {
-    margin-bottom: 0.15rem;
+    padding: 0.5rem;
+    gap: 0.25rem;
   }
 
   .card-header-row .title {
     font-size: 0.95rem;
   }
 
-  .calendar-table td {
-    height: 28px;
-  }
-
   .day-circle {
-    width: 28px;
-    height: 28px;
-    font-size: 0.65rem;
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 
   .hike-icon {
-    width: 28px;
-    height: 28px;
-    padding: 5px;
-  }
-
-  .streak-header,
-  .streak-cell {
-    width: 32px;
-  }
-
-  .streak-indicator {
-    min-height: 28px;
-  }
-
-  .streak-check,
-  .streak-circle {
-    width: 28px;
-    height: 28px;
+    padding: 7px;
   }
 }
 </style>

@@ -280,9 +280,9 @@ onMounted(() => {
   height: 100%;
   width: 100%;
   padding: 0.5rem;
-  border-radius: 12px;
-  border: 2px solid var(--bulma-border);
-  box-shadow: 0 4px 12px var(--bulma-text-50);
+  border-radius: var(--card-border-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
   transition: background-color 0.3s;
   overflow: hidden;
 }

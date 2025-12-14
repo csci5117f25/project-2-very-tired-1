@@ -148,12 +148,12 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
 .hike-card {
   cursor: pointer;
   overflow: hidden;
-  border: 2px solid var(--bulma-border);
-  border-radius: 15px;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px var(--bulma-text-50);
+  box-shadow: var(--card-shadow);
 }
 
 .card-image {

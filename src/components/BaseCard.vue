@@ -7,7 +7,6 @@ import router from '@/router'
 const props = defineProps({
   link: { type: String, required: true },
   title: { type: String, required: true },
-  source: { type: String },
   size: {
     type: String,
     default: 'full',
@@ -53,9 +52,9 @@ const goToLink = () => {
   overflow: hidden;
   display: flex;
   height: 100%;
-  border-radius: 20px;
-  border: 2px solid var(--bulma-border);
-  box-shadow: 0 4px 12px var(--bulma-text-50);
+  border-radius: var(--card-border-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
   align-items: center;
   justify-content: center;
   padding: 0 20px;
@@ -65,7 +64,8 @@ const goToLink = () => {
 .card-title {
   display: flex;
   align-items: center;
-  width: 30%;
+  justify-content: center;
+  text-align: center;
 }
 
 .card-icon::v-deep svg {
@@ -85,9 +85,6 @@ const goToLink = () => {
 @media (max-width: 600px) {
   .card-wrapper[data-size='half'] .card-icon {
     display: none;
-  }
-  .card-title {
-    width: 65%;
   }
   .card-icon {
     transform: translateY(0);
