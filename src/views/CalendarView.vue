@@ -1,11 +1,12 @@
 <script setup>
 // --- imports ---
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import MonthlyCalendar from '@/components/MonthlyCalendar.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 // --- router ---
 const router = useRouter()
+const route = useRoute()
 
 // --- local state ---
 const currentDate = new Date()
@@ -19,6 +20,22 @@ const changeYear = (num) => {
 const goBack = () => {
   router.back()
 }
+
+// --- Scroll to month on mount if query param exists ---
+onMounted(async () => {
+  await nextTick()
+
+  const scrollTo = route.query.scrollTo
+  if (scrollTo) {
+    // Small delay to ensure DOM is fully rendered
+    setTimeout(() => {
+      const element = document.getElementById(scrollTo)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
+  }
+})
 </script>
 
 <template>
@@ -37,6 +54,7 @@ const goBack = () => {
       <monthly-calendar
         class="block"
         v-for="i in 12"
+        :id="`month-${i - 1}`"
         :key="year + '-' + (i - 1)"
         :year="year"
         :month="i - 1"

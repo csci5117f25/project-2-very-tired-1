@@ -9,6 +9,7 @@ import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
 import WeatherWidget from '@/components/WeatherWidget.vue'
 import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
+import MonthlyCalendarCard from '@/components/MonthlyCalendarCard.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
@@ -113,18 +114,13 @@ async function handleLogout() {
       </div>
     </div>
 
-    <div class="row">
-      <base-card link="/calendar" size="full" title="Calendar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 20 20">
-          <path
-            fill="#000000"
-            d="M1 4c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4zm2 2v12h14V6H3zm2-6h2v2H5V0zm8 0h2v2h-2V0zM5 9h2v2H5V9zm0 4h2v2H5v-2zm4-4h2v2H9V9zm0 4h2v2H9v-2zm4-4h2v2h-2V9zm0 4h2v2h-2v-2z"
-          />
-        </svg>
-      </base-card>
+    <div class="row row-calendar">
+      <div class="calendar-card-wrapper">
+        <MonthlyCalendarCard />
+      </div>
     </div>
 
-    <div class="row">
+    <div class="row row-actions">
       <base-card link="/startHike" size="half" title="Start hike">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -228,6 +224,37 @@ async function handleLogout() {
   height: 100%;
   position: relative;
   touch-action: none; /* Prevents browser scroll from intercepting swipe gestures */
+}
+
+.calendar-card-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.row-calendar {
+  flex: 1.4;
+}
+
+.row-actions {
+  flex: 0.6;
+  min-height: 80px;
+}
+
+/* Small screens - reduce calendar size to ensure buttons are visible */
+@media (max-height: 700px) {
+  .rows {
+    gap: 12px;
+    padding-bottom: 2vh;
+  }
+
+  .row-calendar {
+    flex: 1;
+  }
+
+  .row-actions {
+    flex: 0.8;
+    min-height: 70px;
+  }
 }
 
 /* Loading overlay */
