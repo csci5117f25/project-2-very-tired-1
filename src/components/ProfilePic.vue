@@ -34,19 +34,17 @@ console.log(props.src)
 
   padding: 4.5px;
   border-radius: 50%;
-  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+  background-color: var(--bulma-primary);
 }
 
 .avatar-img {
   border-radius: 50%;
-
   border: 5px solid var(--bulma-background);
   box-sizing: border-box;
 }
 
 .userName {
   border-radius: 5px;
-
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1.3rem;
   font-weight: 550;
