@@ -90,7 +90,7 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
         </div>
 
         <div v-else-if="hasTrailData" class="trail-preview">
-          <HikeMap :trail="trail" :static="true" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" />
+          <HikeMap :trail="trail" :static="true" />
           <div class="image-overlay"></div>
         </div>
 

@@ -102,6 +102,11 @@ onMounted(() => {
     map.on('load', () => {
       mapLoaded.value = true
 
+      // Ensure map renders properly in containers with dynamic sizing
+      if (props.static) {
+        map.resize()
+      }
+
     // Add trail source if we have trail data
     if (props.trail.length >= 2) {
       map.addSource('trail', {
@@ -193,8 +198,8 @@ onMounted(() => {
   }
 
   if (props.static) {
-    // For static mode, use a small delay to ensure container is rendered
-    setTimeout(initMap, 100)
+    // For static mode, use a longer delay to ensure container is fully rendered
+    setTimeout(initMap, 300)
   } else {
     initMap()
   }
@@ -346,6 +351,14 @@ onBeforeUnmount(() => {
 
 /* For static mode in cards, ensure proper height */
 .hike-map-wrapper[data-static="true"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hike-map-wrapper[data-static="true"] .map-container {
   position: absolute;
   top: 0;
   left: 0;
