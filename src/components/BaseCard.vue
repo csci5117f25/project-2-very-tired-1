@@ -12,6 +12,7 @@ const props = defineProps({
     type: String,
     default: 'full',
   },
+  backgroundColor: { type: String, default: null },
 })
 
 // --- Computed ---
@@ -27,8 +28,12 @@ const goToLink = () => {
 
 <template>
   <div
-    class="card-wrapper has-background-primary"
-    :style="{ width: computedWidth }"
+    class="card-wrapper"
+    :class="{ 'has-background-primary': !backgroundColor }"
+    :style="{ 
+      width: computedWidth,
+      backgroundColor: backgroundColor || undefined
+    }"
     :data-size="size"
     @click="goToLink"
   >
