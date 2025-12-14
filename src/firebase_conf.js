@@ -54,7 +54,7 @@ export const signInWithGoogle = async () => {
     await setDoc(doc(db, 'users', user.uid, 'goals', 'weekly'), {
       type: 'weekly',
       hikesTarget: 3,
-      distanceMetersTarget: 10058,
+      distanceKmTarget: 10,
       photosTarget: 7,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -63,7 +63,7 @@ export const signInWithGoogle = async () => {
     await setDoc(doc(db, 'users', user.uid, 'goals', 'monthly'), {
       type: 'monthly',
       hikesTarget: 12,
-      distanceMetersTarget: 43744,
+      distanceKmTarget: 45,
       photosTarget: 30,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -72,7 +72,7 @@ export const signInWithGoogle = async () => {
     await setDoc(doc(db, 'users', user.uid, 'goals', 'annualy'), {
       type: 'annualy',
       hikesTarget: 144,
-      distanceMetersTarget: 524640,
+      distanceKmTarget: 525,
       photosTarget: 365,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),

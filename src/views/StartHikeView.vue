@@ -378,7 +378,7 @@ watch(hikeName, (v) => {
         <b-button type="is-warning" @click="togglePause" :icon-left="isPaused ? 'play' : 'pause'">
         </b-button>
         <b-button type="is-primary" @click="showTakePicture = true" icon-left="camera"></b-button>
-        <b-button :type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
+        <b-button type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
       </div>
 
       <div v-if="photos.length > 0" class="photos-section">

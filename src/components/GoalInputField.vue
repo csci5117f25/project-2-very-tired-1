@@ -23,7 +23,7 @@ switch (props.unit) {
     fieldName = 'photosTarget'
     break
   case 'Distance':
-    fieldName = 'distanceMetersTarget'
+    fieldName = 'distanceKmTarget'
     break
 }
 
@@ -49,26 +49,22 @@ async function updateGoal() {
 </script>
 
 <template>
-  <div class="setting-entry" :style="{ '--color': props.color }">
+  <div class="setting-entry">
     <div class="setting-label">
-      <h2>{{ unit }}:</h2>
+      <h2 class="has-text-dark">{{ unit }}:</h2>
     </div>
 
     <div class="setting-input">
-      <input v-model.number="count" />
+      <input v-model.number="count" class="has-text-dark" />
     </div>
 
     <div class="setting-btn">
-      <button @click="updateGoal">Update</button>
+      <button class="button is-small is-white is-outlined" @click="updateGoal">Update</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.setting-entry {
-  align-items: center;
-}
-
 .setting-label {
   width: 25vw;
   font-size: 1.2rem;
@@ -80,9 +76,8 @@ async function updateGoal() {
 }
 
 .setting-input input {
-  background-color: rgb(135, 136, 142);
+  background-color: rgba(255, 255, 255, 0.8);
   border: 2px solid transparent;
-  color: white;
   font-weight: bold;
   border-radius: 20px;
   height: 28px;
@@ -97,7 +92,6 @@ async function updateGoal() {
 }
 
 .setting-btn button {
-  color: white;
   font-weight: bold;
 }
 </style>

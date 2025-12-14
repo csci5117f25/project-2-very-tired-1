@@ -88,7 +88,7 @@ where `{goalId}` is `weekly` or `monthly` or `annualy`.
 {
   "type": "weekly",
   "hikesTarget": 3,
-  "distanceMetersTarget": 20000,
+  "distanceKmsTarget": 20000,
   "photosTarget": 10,
   "createdAt": <Timestamp>,
   "updatedAt": <Timestamp>

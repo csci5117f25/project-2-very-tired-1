@@ -45,8 +45,8 @@ const formattedDatetime = computed(() => {
 
 const formattedDistance = computed(() => {
   if (!props.distance) return 'N/A'
-  const miles = props.distance * 0.000621371
-  return `${miles.toFixed(1)} mi`
+  const km = props.distance / 1000
+  return `${km.toFixed(2)} km`
 })
 
 const formattedDuration = computed(() => {
