@@ -240,20 +240,24 @@ async function handleLogout() {
   min-height: 80px;
 }
 
-/* Small screens - reduce calendar size to ensure buttons are visible */
-@media (max-height: 700px) {
+/* Small screens - adjust layout to fit calendar */
+@media (max-height: 750px) {
   .rows {
-    gap: 12px;
-    padding-bottom: 2vh;
+    gap: 10px;
+    padding: 2vh 3vw;
+  }
+
+  .row {
+    flex: 0.8;
   }
 
   .row-calendar {
-    flex: 1;
+    flex: 1.5;
   }
 
   .row-actions {
-    flex: 0.8;
-    min-height: 70px;
+    flex: 0.5;
+    min-height: 60px;
   }
 }
 
