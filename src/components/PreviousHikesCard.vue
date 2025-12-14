@@ -3,9 +3,10 @@ import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
-import HikeMap from '@/components/HikeMap.vue'
 
 const router = useRouter()
+
+const MAPBOX_TOKEN = 'pk.eyJ1IjoidG9tbGkxMDQiLCJhIjoiY21qNTZraGJ0MDE1cTNncHp2cWYwd3V0OSJ9.4iVmOOYYfvYHnsyMXouYqw'
 
 const props = defineProps({
   hikeId: String,
@@ -71,6 +72,67 @@ const hasTrailData = computed(() => {
 
 const hasHikeData = computed(() => !!props.hikeId)
 
+// Simplify trail to max N points to avoid URL length limits
+const simplifyTrail = (trail, maxPoints = 80) => {
+  if (trail.length <= maxPoints) return trail
+  const step = (trail.length - 1) / (maxPoints - 1)
+  const simplified = []
+  for (let i = 0; i < maxPoints - 1; i++) {
+    simplified.push(trail[Math.round(i * step)])
+  }
+  simplified.push(trail[trail.length - 1]) // Always include last point
+  return simplified
+}
+
+// Generate Mapbox Static Image URL with trail overlay (using GeoJSON for accuracy)
+const staticMapUrl = computed(() => {
+  if (!props.trail || props.trail.length < 2) return null
+
+  // Simplify trail to avoid URL length limits (~8KB max)
+  const simplifiedTrail = simplifyTrail(props.trail)
+
+  // Create GeoJSON for the trail line with start/end markers
+  const geojson = {
+    type: 'FeatureCollection',
+    features: [
+      // Trail line
+      {
+        type: 'Feature',
+        properties: { stroke: '#ff7300', 'stroke-width': 4 },
+        geometry: {
+          type: 'LineString',
+          coordinates: simplifiedTrail.map(p => [
+            Math.round(p.lng * 100000) / 100000,
+            Math.round(p.lat * 100000) / 100000
+          ])
+        }
+      },
+      // Start point (green)
+      {
+        type: 'Feature',
+        properties: { 'marker-color': '#00cc00', 'marker-size': 'small' },
+        geometry: {
+          type: 'Point',
+          coordinates: [props.trail[0].lng, props.trail[0].lat]
+        }
+      },
+      // End point (black with flag)
+      {
+        type: 'Feature',
+        properties: { 'marker-color': '#000000', 'marker-size': 'small', 'marker-symbol': 'embassy' },
+        geometry: {
+          type: 'Point',
+          coordinates: [props.trail[props.trail.length - 1].lng, props.trail[props.trail.length - 1].lat]
+        }
+      }
+    ]
+  }
+
+  const encodedGeoJSON = encodeURIComponent(JSON.stringify(geojson))
+  // Using outdoors style with built-in hillshading
+  return `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/geojson(${encodedGeoJSON})/auto/400x250@2x?padding=30&access_token=${MAPBOX_TOKEN}`
+})
+
 // Responsive trail dimensions - iPhone SE is 375px, Pro Max is 430px
 const { width: windowWidth } = useWindowSize()
 const isSmallScreen = computed(() => windowWidth.value < 400)
@@ -89,8 +151,8 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
           <div class="image-overlay"></div>
         </div>
 
-        <div v-else-if="hasTrailData" class="trail-preview">
-          <HikeMap :trail="trail" :static="true" />
+        <div v-else-if="staticMapUrl" class="trail-preview">
+          <img :src="staticMapUrl" alt="Trail map" class="static-map-image" loading="lazy" />
           <div class="image-overlay"></div>
         </div>
 
@@ -152,7 +214,7 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
 }
 
 .card-image {
-  min-height: 200px;
+  height: 200px;
   position: relative;
   overflow: hidden;
 }
@@ -160,7 +222,7 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
 .background-image,
 .no-image-placeholder,
 .trail-preview {
-  min-height: 200px;
+  height: 200px; /* Fixed height for map rendering */
   background-color: var(--bulma-text-70);
   background-size: cover;
   background-position: center;
@@ -169,7 +231,16 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
 }
 
 .trail-preview {
-  background-color: transparent; /* Remove grey background for map */
+  background-color: var(--bulma-text-70); /* Fallback while image loads */
+}
+
+.static-map-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .image-overlay {
@@ -179,6 +250,8 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
   right: 0;
   bottom: 0;
   background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .card-content {
@@ -246,13 +319,13 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
 /* Desktop sized view */
 @media (min-width: 1024px) {
   .card-image {
-    min-height: 250px;
+    height: 250px;
   }
 
   .background-image,
   .no-image-placeholder,
   .trail-preview {
-    min-height: 250px;
+    height: 250px;
   }
 
   .heading {

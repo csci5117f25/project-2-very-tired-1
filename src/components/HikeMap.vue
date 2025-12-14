@@ -105,6 +105,10 @@ onMounted(() => {
       // Ensure map renders properly in containers with dynamic sizing
       if (props.static) {
         map.resize()
+        // Additional delayed resize to handle late-rendering containers
+        setTimeout(() => {
+          if (map) map.resize()
+        }, 100)
       }
 
     // Add trail source if we have trail data
