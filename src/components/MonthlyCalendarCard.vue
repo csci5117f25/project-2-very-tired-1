@@ -169,7 +169,7 @@ const monthName = computed(() => {
 }
 
 .card-content {
-  padding: 0.75rem 0.75rem 1.25rem 0.75rem;
+  padding: 0.75rem 0.75rem 1.5rem 0.75rem;
   background-color: var(--bulma-text-15-soft);
   display: flex;
   flex-direction: column;
@@ -296,7 +296,7 @@ const monthName = computed(() => {
 /* Small width screens - keep circles large and tight */
 @media (max-width: 400px) {
   .card-content {
-    padding: 0.5rem 0.5rem 1rem 0.5rem;
+    padding: 0.5rem 0.5rem 1.25rem 0.5rem;
   }
 
   .day-circle {
@@ -338,7 +338,7 @@ const monthName = computed(() => {
 /* Small height screens - keep circles large and tight */
 @media (max-height: 750px) {
   .card-content {
-    padding: 0.4rem 0.4rem 0.75rem 0.4rem;
+    padding: 0.4rem 0.4rem 1rem 0.4rem;
   }
 
   .card-header-row {
