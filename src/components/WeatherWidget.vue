@@ -266,6 +266,12 @@ onMounted(() => {
   z-index: 0;
   pointer-events: none;
   object-fit: contain;
+  /* High-DPI rendering fixes */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .weather-description-top {
