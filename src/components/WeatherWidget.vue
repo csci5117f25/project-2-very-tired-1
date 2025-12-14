@@ -11,20 +11,23 @@ const rainChance = ref(null)
 const description = ref('')
 const iconUrl = ref('')
 const loading = ref(true)
+const isDay = ref(true) // Track day/night state
 
 const { coords } = useGeolocation({ immediate: true, enableHighAccuracy: true })
 
-// Dynamic background color based on conditions
+// Dynamic background color based on conditions AND time of day
 const bgClass = computed(() => {
   const d = description.value.toLowerCase()
   const t = tempF.value
-  if (d.includes('thunder') || d.includes('storm')) return 'bg-storm'
-  if (d.includes('snow')) return 'bg-snow'
-  if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return 'bg-rain'
-  if (d.includes('cloud') || d.includes('overcast') || d.includes('fog')) return 'bg-cloudy'
-  if (t && t > 80) return 'bg-hot'
-  if (t && t < 40) return 'bg-cold'
-  return 'bg-clear' // sunny/clear
+  const isDayTime = isDay.value
+
+  if (d.includes('thunder') || d.includes('storm')) return isDayTime ? 'bg-storm' : 'bg-storm-night'
+  if (d.includes('snow')) return isDayTime ? 'bg-snow' : 'bg-snow-night'
+  if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return isDayTime ? 'bg-rain' : 'bg-rain-night'
+  if (d.includes('cloud') || d.includes('overcast') || d.includes('fog')) return isDayTime ? 'bg-cloudy' : 'bg-cloudy-night'
+  if (t && t > 80) return isDayTime ? 'bg-hot' : 'bg-hot-night'
+  if (t && t < 40) return isDayTime ? 'bg-cold' : 'bg-cold-night'
+  return isDayTime ? 'bg-clear' : 'bg-clear-night'
 })
 
 // Icon selection logic
@@ -82,7 +85,14 @@ async function fetchWeather(lat, lon) {
   tempF.value = tempC != null ? (tempC * 9/5) + 32 : null
   temp.value = tempF.value != null ? Math.round(tempF.value) : '--'
 
-  const windMph = parseInt(current.windSpeed.replace(/\D+$/, '')) || 0
+  // Wind: Try observation station first (more accurate), fall back to forecast
+  let windMph = 0
+  const obsWindSpeed = props.windSpeed?.value
+  if (obsWindSpeed != null) {
+    windMph = Math.round(obsWindSpeed * 0.621371) // km/h to mph
+  } else {
+    windMph = parseInt(current.windSpeed.replace(/\D+$/, '')) || 0
+  }
   wind.value = `${windMph}mph`
 
   const rh = props.relativeHumidity?.value
@@ -94,9 +104,11 @@ async function fetchWeather(lat, lon) {
   rainChance.value = precip != null ? precip : 0
 
   description.value = props.textDescription || 'Clear'
-  const hour = new Date().getHours()
-  const isDay = hour >= 6 && hour < 20
-  iconUrl.value = `/weather-icons/${getIcon(description.value, isDay)}`
+
+  // Determine day/night using API's isDaytime flag
+  isDay.value = forecast.properties.periods[0].isDaytime
+
+  iconUrl.value = `/weather-icons/${getIcon(description.value, isDay.value)}`
 
   loading.value = false
 }
@@ -121,6 +133,9 @@ onMounted(() => {
     <template v-else>
       <!-- Background SVG -->
       <img :src="iconUrl" class="weather-icon-bg" alt="weather" />
+
+      <!-- Top right: Weather description -->
+      <div class="weather-description-top">{{ description }}</div>
 
       <!-- Center content: temp + city -->
       <div class="center-content">
@@ -181,6 +196,7 @@ onMounted(() => {
 }
 
 /* Weather backgrounds using Bulma colors with transparency */
+/* Day backgrounds */
 .bg-storm { background-color: color-mix(in srgb, var(--bulma-grey-dark) 50%, transparent); }
 .bg-snow { background-color: color-mix(in srgb, var(--bulma-info) 40%, transparent); }
 .bg-rain { background-color: color-mix(in srgb, var(--bulma-link) 40%, transparent); }
@@ -189,16 +205,93 @@ onMounted(() => {
 .bg-cold { background-color: color-mix(in srgb, var(--bulma-info-light) 50%, transparent); }
 .bg-clear { background-color: color-mix(in srgb, var(--bulma-warning-light) 60%, transparent); }
 
+/* Night backgrounds - darker variants */
+.bg-storm-night { background-color: color-mix(in srgb, var(--bulma-dark) 70%, transparent); }
+.bg-snow-night { background-color: color-mix(in srgb, var(--bulma-link-dark) 50%, transparent); }
+.bg-rain-night { background-color: color-mix(in srgb, var(--bulma-link-dark) 50%, transparent); }
+.bg-cloudy-night { background-color: color-mix(in srgb, var(--bulma-grey-dark) 60%, transparent); }
+.bg-hot-night { background-color: color-mix(in srgb, var(--bulma-warning-dark) 60%, transparent); }
+.bg-cold-night { background-color: color-mix(in srgb, var(--bulma-info-dark) 60%, transparent); }
+.bg-clear-night { background-color: color-mix(in srgb, var(--bulma-link-dark) 50%, transparent); }
+
+/* Night mode - lighter text colors for dark backgrounds */
+.bg-storm-night .temp,
+.bg-snow-night .temp,
+.bg-rain-night .temp,
+.bg-cloudy-night .temp,
+.bg-hot-night .temp,
+.bg-cold-night .temp,
+.bg-clear-night .temp {
+  color: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+}
+
+.bg-storm-night .city-name,
+.bg-snow-night .city-name,
+.bg-rain-night .city-name,
+.bg-cloudy-night .city-name,
+.bg-hot-night .city-name,
+.bg-cold-night .city-name,
+.bg-clear-night .city-name {
+  color: color-mix(in srgb, var(--bulma-white) 75%, transparent);
+}
+
+.bg-storm-night .stat,
+.bg-snow-night .stat,
+.bg-rain-night .stat,
+.bg-cloudy-night .stat,
+.bg-hot-night .stat,
+.bg-cold-night .stat,
+.bg-clear-night .stat {
+  color: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+}
+
+/* Night mode - enhance icon visibility */
+.bg-storm-night .weather-icon-bg,
+.bg-snow-night .weather-icon-bg,
+.bg-rain-night .weather-icon-bg,
+.bg-cloudy-night .weather-icon-bg,
+.bg-hot-night .weather-icon-bg,
+.bg-cold-night .weather-icon-bg,
+.bg-clear-night .weather-icon-bg {
+  filter: brightness(1.2);
+}
+
 .weather-icon-bg {
   position: absolute;
-  inset-inline-start: -10px;
-  inset-block-start: -20px;
-  width: 120px;
-  height: 120px;
+  inset-inline-start: -30px;
+  inset-block-start: -30px;
+  width: 140px;
+  height: 140px;
   opacity: 1;
   z-index: 0;
   pointer-events: none;
   object-fit: contain;
+}
+
+.weather-description-top {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--bulma-text) 70%, transparent);
+  z-index: 1;
+  text-align: right;
+  max-width: 45%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Night mode - lighter description text */
+.bg-storm-night .weather-description-top,
+.bg-snow-night .weather-description-top,
+.bg-rain-night .weather-description-top,
+.bg-cloudy-night .weather-description-top,
+.bg-hot-night .weather-description-top,
+.bg-cold-night .weather-description-top,
+.bg-clear-night .weather-description-top {
+  color: color-mix(in srgb, var(--bulma-white) 80%, transparent);
 }
 
 .center-content {
@@ -229,6 +322,17 @@ onMounted(() => {
   font-weight: 600;
   margin: 4px 0 0 0;
   color: color-mix(in srgb, var(--bulma-text) 60%, transparent);
+}
+
+/* Night mode - lighter city name text */
+.bg-storm-night .city-name,
+.bg-snow-night .city-name,
+.bg-rain-night .city-name,
+.bg-cloudy-night .city-name,
+.bg-hot-night .city-name,
+.bg-cold-night .city-name,
+.bg-clear-night .city-name {
+  color: color-mix(in srgb, var(--bulma-white) 75%, transparent);
 }
 
 .bottom-bar {
