@@ -2,8 +2,10 @@
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import TakePictureModal from '@/components/TakePictureModal.vue'
+import HikeSummaryModal from '@/components/HikeSummaryModal.vue'
 import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
+import HikeMap from '@/components/HikeMap.vue'
 import { db, storage } from '@/firebase_conf'
 import { ref as storageRef, deleteObject } from 'firebase/storage'
 import { useAuth } from '@/composables/useAuth'
@@ -64,14 +66,15 @@ const lngFilter = new KalmanFilter()
 
 const trail = ref([])
 const elapsed = ref(0) // seconds
+const startedAt = ref(new Date()) // Track when hike started for default name
 const timerId = ref(null)
 const hikeId = ref(null)
 const distanceMeters = ref(0)
 const elevationGainMeters = ref(0)
-const hikeName = ref('')
 const isPaused = ref(false)
 const router = useRouter()
 const showTakePicture = ref(false)
+const showSummary = ref(false)
 const photos = ref([])
 const currPhotoIndex = ref(0)
 const isImageModalActive = ref(false)
@@ -167,8 +170,16 @@ async function cancelHike() {
   }
 }
 
-async function finishHike() {
+function finishHike() {
   stopTimer()
+  showSummary.value = true
+}
+
+function resumeHike() {
+  startTimer()
+}
+
+async function saveHike(name) {
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
     await updateDoc(hikeRef, {
@@ -176,13 +187,16 @@ async function finishHike() {
       durationSec: elapsed.value,
       trail: trail.value,
       status: 'completed',
-      name: hikeName.value,
+      name: name,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
     })
     router.push('/')
   } catch (e) {
     console.error('Failed to update hike on finish:', e)
+    // Resume timer if save failed
+    startTimer()
+    showSummary.value = false
   }
 }
 
@@ -195,8 +209,7 @@ onMounted(async () => {
     elapsed.value = existingHike.durationSec || 0
     distanceMeters.value = existingHike.distanceMeters || 0
     elevationGainMeters.value = existingHike.elevationGainMeters || 0
-    hikeName.value = existingHike.name || ''
-    console.log('Loaded in-progress hike:', hikeId.value)
+    startedAt.value = existingHike.startedAt?.toDate() || new Date()
 
     // Prime Kalman filters with last known position for smooth continuation
     if (trail.value.length > 0) {
@@ -227,7 +240,7 @@ onMounted(async () => {
       distanceMeters: 0,
       elevationGainMeters: 0,
       trail: [],
-      name: hikeName.value,
+      name: '',
       lastUpdatedAt: serverTimestamp(),
     })
     hikeId.value = docRef.id
@@ -332,91 +345,240 @@ watch(
   { immediate: true },
 )
 
-watch(hikeName, (v) => {
-  const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
-  updateDoc(hikeRef, { name: v })
-})
 </script>
 
 <template>
   <div class="start-hike">
-    <div class="trail-top column has-text-centered">
-      <TrailLine :points="trail" class="trail-line" />
+    <!-- Fullscreen map as background -->
+    <HikeMap :trail="trail" :currentLocation="coords" class="fullscreen-map" />
+
+    <!-- Overlay controls -->
+    <div class="map-overlay">
+      <!-- Top section: trail preview -->
+      <div class="top-section">
+        <div v-if="trail.length > 0" class="trail-preview">
+          <TrailLine :points="trail" :width="150" :height="150" :padding="10" :strokeWidth="3" :markerRadius="4" />
+        </div>
+      </div>
+
+      <!-- Bottom controls -->
+      <div class="bottom-controls">
+        <!-- Metrics bar -->
+        <div class="metrics-bar horizontal" :class="{ paused: isPaused }">
+          <div v-if="isPaused" class="paused-banner">Paused</div>
+          <div class="metric-item">
+            <div class="metric-value">{{ formattedTime }}</div>
+            <div class="metric-label">Time</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">{{ distanceKm }} km</div>
+            <div class="metric-label">Distance</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">{{ elevationGainRounded }} m</div>
+            <div class="metric-label">Elevation</div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-buttons">
+          <b-button
+            type="is-success"
+            size="is-large"
+            @click="finishHike"
+            icon-left="flag-checkered"
+          ></b-button>
+          <b-button
+            type="is-warning"
+            size="is-large"
+            @click="togglePause"
+            :icon-left="isPaused ? 'play' : 'pause'"
+          ></b-button>
+          <b-button
+            type="is-primary"
+            size="is-large"
+            @click="showTakePicture = true"
+            icon-left="camera"
+          ></b-button>
+          <b-button
+            type="is-danger"
+            size="is-large"
+            @click="cancelHike"
+            icon-left="trash-can"
+          ></b-button>
+        </div>
+
+        <!-- Photos carousel -->
+        <div v-if="photos.length > 0" class="photos-section">
+          <b-carousel-list v-model="currPhotoIndex" :data="photos" :items-to-show="4.2">
+            <template #item="photo">
+              <div class="photo-item">
+                <img
+                  :src="photo.downloadURL"
+                  alt="Hike photo"
+                  class="photo-img"
+                  @click="openImageModal(photo.downloadURL)"
+                />
+                <button class="delete is-small delete-btn" @click="deletePhoto(photo)"></button>
+              </div>
+            </template>
+          </b-carousel-list>
+        </div>
+      </div>
     </div>
 
-    <section class="hike-details">
-      <div class="field is-grouped is-grouped-multiline is-grouped-centered details-tags">
-        <b-tag type="is-primary" size="is-medium">Duration: {{ formattedTime }}</b-tag>
-        <b-tag type="is-info" size="is-medium">Distance: {{ distanceKm }} km</b-tag>
-        <b-tag type="is-success" size="is-medium"
-          >Elevation Gain: {{ elevationGainRounded }} m</b-tag
-        >
+    <b-modal v-model="isImageModalActive">
+      <div class="is-flex is-justify-content-center is-align-items-center" style="height: 100%">
+        <img class="photo-img-modal" :src="selectedImage" />
       </div>
+    </b-modal>
 
-      <b-field label="Hike Name (required)">
-        <b-input v-model="hikeName" placeholder="Enter a name for this hike" required />
-      </b-field>
-
-      <div class="field is-grouped is-grouped-centered action-buttons">
-        <b-button
-          type="is-success"
-          @click="finishHike"
-          :disabled="!hikeName.trim()"
-          icon-left="flag-checkered"
-        ></b-button>
-        <b-button type="is-warning" @click="togglePause" :icon-left="isPaused ? 'play' : 'pause'">
-        </b-button>
-        <b-button type="is-primary" @click="showTakePicture = true" icon-left="camera"></b-button>
-        <b-button :type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
-      </div>
-
-      <div v-if="photos.length > 0" class="photos-section">
-        <b-carousel-list v-model="currPhotoIndex" :data="photos" :items-to-show="4.2">
-          <template #item="photo">
-            <div class="photo-item">
-              <img
-                :src="photo.downloadURL"
-                alt="Hike photo"
-                class="photo-img"
-                @click="openImageModal(photo.downloadURL)"
-              />
-              <button class="delete is-small delete-btn" @click="deletePhoto(photo)"></button>
-            </div>
-          </template>
-        </b-carousel-list>
-      </div>
-
-      <b-modal v-model="isImageModalActive">
-        <div class="is-flex is-justify-content-center is-align-items-center" style="height: 100%">
-          <img class="photo-img-modal" :src="selectedImage" />
-        </div>
-      </b-modal>
-    </section>
     <TakePictureModal v-model="showTakePicture" :hikeId="hikeId" @photo-added="loadPhotos" />
+
+    <HikeSummaryModal
+      v-model="showSummary"
+      :trail="trail"
+      :duration="elapsed"
+      :distanceKm="distanceKm"
+      :elevationGain="elevationGainRounded"
+      :photos="photos"
+      :startedAt="startedAt"
+      :currentLocation="coords"
+      @save="saveHike"
+      @resume="resumeHike"
+    />
   </div>
 </template>
 
 <style scoped>
-.trail-top {
-  width: 100%;
-  height: auto;
+.start-hike {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.fullscreen-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   padding: 12px;
 }
 
-.trail-line {
-  display: inline-block;
-  width: 90%;
-  max-width: 600px;
+.top-section {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
 }
 
-.hike-details {
-  width: 100%;
-  display: block;
-  padding: 12px;
+.trail-preview {
+  background: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px var(--bulma-text-50);
+  pointer-events: auto;
+  width: 120px;
+  height: 120px;
 }
 
-.details-tags {
-  margin-bottom: 8px;
+.bottom-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.metrics-bar {
+  background: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px var(--bulma-text-50);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.paused-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--bulma-warning);
+  color: var(--bulma-text-strong);
+  text-align: center;
+  padding: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px 8px 0 0;
+}
+
+.metrics-bar.paused {
+  padding-top: 42px; /* Add space for the banner */
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.metrics-bar.horizontal .metric-item {
+  align-items: center;
+  flex: 1;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bulma-text);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--bulma-text-weak);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.action-buttons .button {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.photos-section {
+  background: color-mix(in srgb, var(--bulma-white) 95%, transparent);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px var(--bulma-text-50);
 }
 
 .photo-item {
@@ -444,10 +606,10 @@ watch(hikeName, (v) => {
   position: absolute;
   top: 5px;
   right: 10px;
-  background-color: rgba(255, 0, 0, 0.7);
+  background-color: color-mix(in srgb, var(--bulma-danger) 70%, transparent);
 }
 
 .delete-btn:hover {
-  background-color: rgba(255, 0, 0, 1);
+  background-color: var(--bulma-danger);
 }
 </style>

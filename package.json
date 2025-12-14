@@ -18,6 +18,7 @@
     "@vueuse/core": "^14.1.0",
     "buefy": "^3.0.3",
     "firebase": "^12.5.0",
+    "mapbox-gl": "^3.17.0",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3",
     "vuefire": "^3.2.2"
