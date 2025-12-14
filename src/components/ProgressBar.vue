@@ -14,6 +14,7 @@ const percent = computed(() => {
 </script>
 
 <template>
+  <!-- https://nikitahl.github.io/svg-circle-progress-generator/ -->
   <div class="container">
     <div class="progress-wrapper">
       <svg viewBox="0 0 120 120">
