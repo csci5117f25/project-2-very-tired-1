@@ -72,6 +72,8 @@ const hikeId = ref(null)
 const distanceMeters = ref(0)
 const elevationGainMeters = ref(0)
 const isPaused = ref(false)
+const hasGpsLock = ref(false) // Track if we have acquired GPS lock
+const showGpsLockMessage = ref(false) // Show "GPS Lock" message briefly when acquired
 const router = useRouter()
 const showTakePicture = ref(false)
 const showSummary = ref(false)
@@ -79,6 +81,7 @@ const photos = ref([])
 const currPhotoIndex = ref(0)
 const isImageModalActive = ref(false)
 const selectedImage = ref('')
+const showPhotoCarousel = ref(false)
 
 function openImageModal(url) {
   selectedImage.value = url
@@ -211,8 +214,10 @@ onMounted(async () => {
     elevationGainMeters.value = existingHike.elevationGainMeters || 0
     startedAt.value = existingHike.startedAt?.toDate() || new Date()
 
-    // Prime Kalman filters with last known position for smooth continuation
+    // If we have an existing trail, we already have GPS lock
     if (trail.value.length > 0) {
+      hasGpsLock.value = true
+      // Prime Kalman filters with last known position for smooth continuation
       const lastPoint = trail.value[trail.value.length - 1]
       latFilter.update(lastPoint.lat)
       lngFilter.update(lastPoint.lng)
@@ -281,17 +286,44 @@ watch(
       return
     }
 
-    // Filter out low-accuracy readings (WiFi/cell tower triangulation)
+    // Filter out obviously invalid coordinates (0,0 or near 0,0 which indicates no GPS lock)
+    if (Math.abs(c.latitude) < 0.001 && Math.abs(c.longitude) < 0.001) {
+      return
+    }
+
+    // Check if we have a good accuracy reading to acquire GPS lock
+    // If accuracy is undefined, we'll accept it (some devices don't provide accuracy)
+    const hasGoodAccuracy =
+      typeof c.accuracy !== 'number' || c.accuracy <= ACCURACY_THRESHOLD
+
+    // Mark that we have acquired GPS lock once we get a good reading
+    if (!hasGpsLock.value) {
+      if (hasGoodAccuracy) {
+        hasGpsLock.value = true
+        showGpsLockMessage.value = true
+
+        // Hide the "GPS Lock" message after 3 seconds
+        setTimeout(() => {
+          showGpsLockMessage.value = false
+        }, 3000)
+      } else {
+        return
+      }
+    }
+
+    // Filter out low-accuracy readings (WiFi/cell tower triangulation) - but only after we have GPS lock
     if (typeof c.accuracy === 'number' && c.accuracy > ACCURACY_THRESHOLD) {
-      console.log(
-        `Skipping low-accuracy reading: ${c.accuracy}m (threshold: ${ACCURACY_THRESHOLD}m)`,
-      )
       return
     }
 
     // Apply Kalman filter to smooth GPS coordinates
     const smoothedLat = latFilter.update(c.latitude, c.accuracy)
     const smoothedLng = lngFilter.update(c.longitude, c.accuracy)
+
+    // Don't record until we have GPS lock
+    if (!hasGpsLock.value) {
+      return
+    }
 
     // Avoid pushing duplicate consecutive points (0.00005 is around 5 meters)
     const last = trail.value[trail.value.length - 1]
@@ -350,7 +382,7 @@ watch(
 <template>
   <div class="start-hike">
     <!-- Fullscreen map as background -->
-    <HikeMap :trail="trail" :currentLocation="coords" class="fullscreen-map" />
+                    <HikeMap :trail="trail" :currentLocation="coords" :hideRecenter="showPhotoCarousel && photos.length > 0" class="fullscreen-map" />
 
     <!-- Overlay controls -->
     <div class="map-overlay">
@@ -364,8 +396,9 @@ watch(
       <!-- Bottom controls -->
       <div class="bottom-controls">
         <!-- Metrics bar -->
-        <div class="metrics-bar horizontal" :class="{ paused: isPaused }">
+        <div class="metrics-bar horizontal" :class="{ paused: isPaused, 'gps-locked': showGpsLockMessage }">
           <div v-if="isPaused" class="paused-banner">Paused</div>
+          <div v-else-if="showGpsLockMessage" class="gps-banner locked">GPS Lock</div>
           <div class="metric-item">
             <div class="metric-value">{{ formattedTime }}</div>
             <div class="metric-label">Time</div>
@@ -401,6 +434,13 @@ watch(
             icon-left="camera"
           ></b-button>
           <b-button
+            v-if="photos.length > 0"
+            type="is-info"
+            size="is-large"
+            @click="showPhotoCarousel = !showPhotoCarousel"
+            icon-left="image"
+          ></b-button>
+          <b-button
             type="is-danger"
             size="is-large"
             @click="cancelHike"
@@ -409,7 +449,7 @@ watch(
         </div>
 
         <!-- Photos carousel -->
-        <div v-if="photos.length > 0" class="photos-section">
+        <div v-if="showPhotoCarousel && photos.length > 0" class="photos-section">
           <b-carousel-list v-model="currPhotoIndex" :data="photos" :items-to-show="4.2">
             <template #item="photo">
               <div class="photo-item">
@@ -483,6 +523,14 @@ watch(
   padding: 12px;
 }
 
+
+.bottom-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+}
+
 .top-section {
   display: flex;
   justify-content: flex-end;
@@ -497,13 +545,7 @@ watch(
   pointer-events: auto;
   width: 120px;
   height: 120px;
-}
-
-.bottom-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  pointer-events: auto;
+  position: relative;
 }
 
 .metrics-bar {
@@ -518,13 +560,12 @@ watch(
   position: relative;
 }
 
-.paused-banner {
+.paused-banner,
+.gps-banner {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  background: var(--bulma-warning);
-  color: var(--bulma-text-strong);
   text-align: center;
   padding: 6px;
   font-size: 0.875rem;
@@ -534,7 +575,18 @@ watch(
   border-radius: 8px 8px 0 0;
 }
 
-.metrics-bar.paused {
+.paused-banner {
+  background: var(--bulma-warning);
+  color: var(--bulma-text-strong);
+}
+
+.gps-banner.locked {
+  background: var(--bulma-success);
+  color: var(--bulma-white);
+}
+
+.metrics-bar.paused,
+.metrics-bar.gps-locked {
   padding-top: 42px; /* Add space for the banner */
 }
 

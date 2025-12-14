@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
+import HikeMap from '@/components/HikeMap.vue'
 
 const router = useRouter()
 
@@ -89,13 +90,7 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
         </div>
 
         <div v-else-if="hasTrailData" class="trail-preview">
-          <TrailLine
-            :points="trail"
-            :width="556"
-            :height="250"
-            :stroke-width="3"
-            :marker-radius="5"
-          />
+          <HikeMap :trail="trail" :static="true" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" />
           <div class="image-overlay"></div>
         </div>
 
@@ -170,6 +165,11 @@ const isSmallScreen = computed(() => windowWidth.value < 400)
   background-size: cover;
   background-position: center;
   position: relative;
+  overflow: hidden;
+}
+
+.trail-preview {
+  background-color: transparent; /* Remove grey background for map */
 }
 
 .image-overlay {

@@ -12,6 +12,14 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  hideRecenter: {
+    type: Boolean,
+    default: false,
+  },
+  static: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const mapContainer = ref(null)
@@ -49,41 +57,76 @@ onMounted(() => {
   mapboxgl.accessToken =
     'pk.eyJ1IjoidG9tbGkxMDQiLCJhIjoiY21qNTZraGJ0MDE1cTNncHp2cWYwd3V0OSJ9.4iVmOOYYfvYHnsyMXouYqw'
 
-  // Determine initial center - use current location or default
-  const initialCenter = currentCoords.value || [-122.4194, 37.7749] // Default to SF
-  const initialZoom = currentCoords.value ? 15 : 10
+  const initMap = () => {
+    if (!mapContainer.value || map) return
 
-  map = new mapboxgl.Map({
-    container: mapContainer.value,
-    style: 'mapbox://styles/mapbox/outdoors-v12',
-    center: initialCenter,
-    zoom: initialZoom,
-  })
+    // Determine initial center - use current location or default
+    const initialCenter = currentCoords.value || [-122.4194, 37.7749] // Default to SF
+    const initialZoom = currentCoords.value ? 15 : 10
 
-  map.on('load', () => {
-    // Add trail source
-    map.addSource('trail', {
-      type: 'geojson',
-      data: trailGeoJSON.value,
-    })
+    // For static mode (card preview), use bounds fitting
+    let mapOptions = {
+      container: mapContainer.value,
+      style: 'mapbox://styles/mapbox/outdoors-v12',
+    }
 
-    // Add trail line layer
-    map.addLayer({
-      id: 'trail-line',
-      type: 'line',
-      source: 'trail',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round',
-      },
-      paint: {
-        'line-color': '#ff7300', // Trail color - kept as hex for Mapbox GL
-        'line-width': 5,
-      },
-    })
+    if (props.static) {
+      mapOptions.interactive = false
+      mapOptions.attributionControl = false
 
-    // Add start point source (green dot)
-    if (props.trail.length > 0) {
+      // For static mode, fit bounds to trail if we have enough points
+      if (props.trail.length >= 2) {
+        const bounds = new mapboxgl.LngLatBounds()
+        props.trail.forEach((point) => {
+          bounds.extend([point.lng, point.lat])
+        })
+        mapOptions.bounds = bounds
+        mapOptions.fitBoundsOptions = {
+          padding: 20,
+          duration: 0, // Instant for static preview
+        }
+      } else if (props.trail.length > 0) {
+        mapOptions.center = [props.trail[0].lng, props.trail[0].lat]
+        mapOptions.zoom = 15
+      } else {
+        mapOptions.center = initialCenter
+        mapOptions.zoom = initialZoom
+      }
+    } else {
+      mapOptions.center = initialCenter
+      mapOptions.zoom = initialZoom
+    }
+
+    map = new mapboxgl.Map(mapOptions)
+
+    map.on('load', () => {
+      mapLoaded.value = true
+
+    // Add trail source if we have trail data
+    if (props.trail.length >= 2) {
+      map.addSource('trail', {
+        type: 'geojson',
+        data: trailGeoJSON.value,
+      })
+
+      // Add trail line layer
+      map.addLayer({
+        id: 'trail-line',
+        type: 'line',
+        source: 'trail',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#ff7300', // Trail color - kept as hex for Mapbox GL
+          'line-width': props.static ? 3 : 5,
+        },
+      })
+    }
+
+    // Add start point source (green dot) - only in static mode or if no current location tracking
+    if (props.trail.length > 0 && (props.static || !currentCoords.value)) {
       map.addSource('start-point', {
         type: 'geojson',
         data: {
@@ -100,16 +143,16 @@ onMounted(() => {
         type: 'circle',
         source: 'start-point',
         paint: {
-          'circle-radius': 8,
+          'circle-radius': props.static ? 6 : 8,
           'circle-color': '#00ff00', // Start point - kept as hex for Mapbox GL
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#000000', // Keep as hex for Mapbox GL
+          'circle-stroke-color': '#ffffff', // White stroke for better visibility
         },
       })
     }
 
-    // Add end point source (red dot) if we have 2+ points
-    if (props.trail.length > 1) {
+    // Add end point (red dot) - only in static mode
+    if (props.static && props.trail.length > 1) {
       const lastPoint = props.trail[props.trail.length - 1]
       map.addSource('end-point', {
         type: 'geojson',
@@ -127,25 +170,33 @@ onMounted(() => {
         type: 'circle',
         source: 'end-point',
         paint: {
-          'circle-radius': 8,
+          'circle-radius': 6,
           'circle-color': '#ff0000', // End point - kept as hex for Mapbox GL
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#000000', // Keep as hex for Mapbox GL
+          'circle-stroke-color': '#ffffff',
         },
       })
     }
+    })
 
-    mapLoaded.value = true
-  })
+    // Disable auto-follow when user interacts with map (skip in static mode)
+    if (!props.static) {
+      map.on('dragstart', () => {
+        isFollowing.value = false
+      })
 
-  // Disable auto-follow when user interacts with map
-  map.on('dragstart', () => {
-    isFollowing.value = false
-  })
+      // Create user location marker
+      if (currentCoords.value) {
+        createUserMarker(currentCoords.value)
+      }
+    }
+  }
 
-  // Create user location marker
-  if (currentCoords.value) {
-    createUserMarker(currentCoords.value)
+  if (props.static) {
+    // For static mode, use a small delay to ensure container is rendered
+    setTimeout(initMap, 100)
+  } else {
+    initMap()
   }
 })
 
@@ -215,43 +266,6 @@ watch(
       }
     }
 
-    // Update end point if we have 2+ trail points
-    if (newTrail.length > 1) {
-      const lastPoint = newTrail[newTrail.length - 1]
-      let endSource = map.getSource('end-point')
-      if (!endSource) {
-        // Create end point source if it doesn't exist
-        map.addSource('end-point', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [lastPoint.lng, lastPoint.lat],
-            },
-          },
-        })
-        map.addLayer({
-          id: 'end-point',
-          type: 'circle',
-          source: 'end-point',
-          paint: {
-            'circle-radius': 8,
-            'circle-color': '#ff0000',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#000000',
-          },
-        })
-      } else {
-        endSource.setData({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [lastPoint.lng, lastPoint.lat],
-          },
-        })
-      }
-    }
   },
   { deep: true },
 )
@@ -275,26 +289,12 @@ watch(mapLoaded, (loaded) => {
       })
     }
 
-    // Update end point if we have 2+ points
-    if (props.trail.length > 1) {
-      const lastPoint = props.trail[props.trail.length - 1]
-      const endSource = map.getSource('end-point')
-      if (endSource) {
-        endSource.setData({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [lastPoint.lng, lastPoint.lat],
-          },
-        })
-      }
-    }
   }
 })
 
-// Watch for location updates and auto-follow
+// Watch for location updates and auto-follow (skip in static mode)
 watch(currentCoords, (coords) => {
-  if (!coords || !map) return
+  if (!coords || !map || props.static) return
 
   // Update user marker position
   if (userMarker) {
@@ -321,9 +321,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="hike-map-wrapper">
+  <div class="hike-map-wrapper" :data-static="props.static">
     <div ref="mapContainer" class="map-container"></div>
-    <div class="recenter-container" :class="{ expanded: !isFollowing }">
+    <div v-if="!props.hideRecenter" class="recenter-container" :class="{ expanded: !isFollowing }">
       <button class="recenter-btn" @click="recenter" title="Re-center on my location">
         <img src="/hiking-icons/noun-geolocation-5194485(1).svg" alt="Re-center" class="recenter-icon" />
       </button>
@@ -342,6 +342,15 @@ onBeforeUnmount(() => {
 .map-container {
   width: 100%;
   height: 100%;
+}
+
+/* For static mode in cards, ensure proper height */
+.hike-map-wrapper[data-static="true"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .recenter-container {

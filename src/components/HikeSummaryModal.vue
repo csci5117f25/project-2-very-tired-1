@@ -255,7 +255,7 @@ function resume() {
 </script>
 
 <template>
-  <b-modal v-model="isOpen" :can-cancel="['escape']" has-modal-card>
+  <b-modal v-model="isOpen" :can-cancel="['escape']" has-modal-card class="hike-summary-modal">
     <div class="modal-card summary-modal">
       <header class="modal-card-head custom-header">
         <b-button type="is-ghost" size="is-small" @click="resume" class="resume-btn">
@@ -324,7 +324,29 @@ function resume() {
 <style scoped>
 .summary-modal {
   max-width: 400px;
+  width: calc(100% - 32px);
   margin: 0 auto;
+}
+
+:deep(.modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:deep(.modal-content) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+:deep(.modal-card) {
+  max-width: 400px !important;
+  width: calc(100% - 32px) !important;
+  margin: 0 auto !important;
 }
 
 .custom-header {
