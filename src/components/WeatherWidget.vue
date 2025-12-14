@@ -281,6 +281,8 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem;
   border-radius: 12px;
+  border: 2px solid var(--bulma-border);
+  box-shadow: 0 4px 12px var(--bulma-text-50);
   transition: background-color 0.3s;
   overflow: hidden;
 }

@@ -41,6 +41,7 @@ console.log(props.src)
   border-radius: 50%;
   border: 5px solid var(--bulma-background);
   box-sizing: border-box;
+  box-shadow: 0 4px 12px var(--bulma-text-50);
 }
 
 .userName {

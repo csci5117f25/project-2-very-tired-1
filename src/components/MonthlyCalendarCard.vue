@@ -159,19 +159,12 @@ const monthName = computed(() => {
 <style scoped>
 .monthly-card {
   cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
   overflow: hidden;
   border: 2px solid var(--bulma-border);
   border-radius: 15px;
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.monthly-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px var(--bulma-text-50);
 }
 
