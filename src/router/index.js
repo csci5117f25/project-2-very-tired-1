@@ -8,6 +8,7 @@ import StartHikeView from '@/views/StartHikeView.vue'
 import PreviousHikesView from '@/views/PreviousHikesView.vue'
 import CalendarView from '@/views/CalendarView.vue'
 import IndividualHikeView from '@/views/IndividualHikeView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes = [
   { path: '/', name: 'Main', component: MainView },
@@ -27,6 +28,11 @@ const routes = [
   {
     path: '/individualHike/:id',
     component: IndividualHikeView,
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'Not-Found',
+    component: NotFoundView,
   },
 ]
 
