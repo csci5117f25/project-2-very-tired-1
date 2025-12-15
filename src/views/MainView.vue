@@ -97,7 +97,9 @@ async function handleLogout() {
           :userName="userName"
           @click="handleLogout"
         />
+        <div class="userName">{{ userName }}</div>
       </div>
+
       <div class="weather-card">
         <WeatherWidget @loaded="weatherLoaded = true" />
       </div>
@@ -143,7 +145,7 @@ async function handleLogout() {
           </g>
         </svg>
       </base-card>
-      <base-card link="" size="half" title="Goals">
+      <base-card link="/goals" size="half" title="Goals">
         <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 16 16">
           <path
             fill="#000000"
@@ -203,10 +205,18 @@ async function handleLogout() {
   width: 50%;
   height: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
 
+.userName {
+  border-radius: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 550;
+  color: var(--bulma-text);
+  height: 20%;
+}
 
 .hike-card-wrapper {
   width: 100%;

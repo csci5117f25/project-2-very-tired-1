@@ -6,6 +6,7 @@ import { useGeolocation } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
 import { db, storage } from '@/firebase_conf'
 import { ref as storageRef, deleteObject } from 'firebase/storage'
+import { increment } from 'firebase/firestore'
 import { useAuth } from '@/composables/useAuth'
 import { getInProgressHike } from '@/composables/getInProgressHike'
 import {
@@ -171,6 +172,8 @@ async function finishHike() {
   stopTimer()
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    const userRef = doc(db, 'users', uid.value)
+
     await updateDoc(hikeRef, {
       finishedAt: serverTimestamp(),
       durationSec: elapsed.value,
@@ -179,6 +182,13 @@ async function finishHike() {
       name: hikeName.value,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
+    })
+
+    await updateDoc(userRef, {
+      totalDistance: increment(distanceMeters.value),
+      totalElevation: increment(elevationGainMeters.value),
+      totalHikes: increment(1),
+      updatedAt: serverTimestamp(),
     })
     router.push('/')
   } catch (e) {
@@ -229,6 +239,7 @@ onMounted(async () => {
       trail: [],
       name: hikeName.value,
       lastUpdatedAt: serverTimestamp(),
+      photoCount: 0,
     })
     hikeId.value = docRef.id
     startTimer()
@@ -367,7 +378,7 @@ watch(hikeName, (v) => {
         <b-button type="is-warning" @click="togglePause" :icon-left="isPaused ? 'play' : 'pause'">
         </b-button>
         <b-button type="is-primary" @click="showTakePicture = true" icon-left="camera"></b-button>
-        <b-button :type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
+        <b-button type="is-danger" @click="cancelHike" icon-left="trash-can"></b-button>
       </div>
 
       <div v-if="photos.length > 0" class="photos-section">
