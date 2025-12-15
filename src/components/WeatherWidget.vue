@@ -48,7 +48,7 @@ function getIcon(forecast, isDay) {
   return isDay ? 'day.svg' : 'night.svg'
 }
 
-// Sunrise/Sunset calculation
+// Sunrise/Sunset calculation - Used Claude AI to generate math formulas and verify the formula
 // Source: https://edwilliams.org/sunrise_sunset_algorithm.htm (US Naval Observatory)
 function calculateSunTimes(lat, lng, date = new Date()) {
   const toRad = (deg) => deg * Math.PI / 180
@@ -117,6 +117,7 @@ function calculateSunTimes(lat, lng, date = new Date()) {
     sunset: calcTime(false)
   }
 }
+// End Claude AI validated math formulas for sunrise/sunset calculation
 
 function isDaytimeByLocation(lat, lng) {
   const { sunrise, sunset } = calculateSunTimes(lat, lng)
@@ -128,7 +129,7 @@ function isDaytimeByLocation(lat, lng) {
   return currentHour >= sunrise && currentHour < sunset
 }
 
-// Feels like temperature calculation
+// Feels like temperature calculation - Used Claude AI to generate math formulas and verify the formula
 // Reference: https://climate.umt.edu/mesonet/ag_tools/feels_like/
 function calcFeelsLike(t, v, rh) {
   if (t < 50 && v > 3) {
@@ -148,6 +149,7 @@ function calcFeelsLike(t, v, rh) {
   }
   return t
 }
+// End Claude AI validated math formulas for feels like temperature calculation
 
 async function fetchWeather(lat, lon) {
   console.log('Fetching weather for:', lat, lon)
