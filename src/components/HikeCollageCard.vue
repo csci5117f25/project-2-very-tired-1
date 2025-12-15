@@ -207,6 +207,15 @@ const gridClass = computed(() => {
   align-items: center;
   justify-content: center;
   background-color: var(--bulma-text-15-soft);
+  overflow: hidden;
+  padding: 10%;
+}
+
+.collage-trail :deep(svg) {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
 }
 
 .collage-placeholder {

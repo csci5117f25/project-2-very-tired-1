@@ -171,7 +171,7 @@ async function handleLogout() {
   flex-direction: column;
   gap: 20px;
   height: 100vh;
-  padding: 2vh 5vw 3vh 5vw;
+  padding: 2vh 5vw 4vh 5vw;
   opacity: 0;
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevents page scroll on mobile */
@@ -242,6 +242,7 @@ async function handleLogout() {
 .row-actions {
   flex: 0.6;
   min-height: 80px;
+  margin-bottom: 10px;
 }
 
 /* Mobile screens - tighter layout */
