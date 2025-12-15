@@ -47,7 +47,6 @@ const gridClass = computed(() => {
 
 <template>
   <div class="collage-wrapper">
-    <p class="collage-title">Previous Hikes</p>
     <div class="collage-card">
       <div v-if="isLoading" class="loading-state">
         <!-- Loading placeholder -->
@@ -99,17 +98,6 @@ const gridClass = computed(() => {
 .collage-wrapper {
   position: relative;
   height: 100%;
-}
-
-.collage-title {
-  position: absolute;
-  top: -24px;
-  left: calc(100% / 6);
-  transform: translateX(-50%);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--bulma-dark);
-  margin: 0;
 }
 
 .collage-card {

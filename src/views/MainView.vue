@@ -175,11 +175,6 @@ async function handleLogout() {
   overflow: hidden; /* Prevents page scroll on mobile */
 }
 
-@media (min-width: 1024px) {
-  .rows {
-    padding: 5vh 3vw 10vh 3vw;
-  }
-}
 
 .row {
   flex: 1;
@@ -219,9 +214,9 @@ async function handleLogout() {
 }
 
 .row-collage {
-  flex: 1;
-  max-height: 260px;
-  margin-top: 24px;
+  flex: 1.2;
+  max-height: 300px;
+  margin-top: 0;
 }
 
 .calendar-card-wrapper {
@@ -242,7 +237,7 @@ async function handleLogout() {
 /* Mobile screens - tighter layout */
 @media (max-height: 900px) {
   .rows {
-    gap: 16px;
+    gap: 12px;
     padding: 1.5vh 4vw 2vh 4vw;
   }
 
@@ -255,9 +250,9 @@ async function handleLogout() {
   }
 
   .row-collage {
-    flex: 0.9;
-    max-height: 220px;
-    margin-top: 20px;
+    flex: 1.2;
+    max-height: 280px;
+    margin-top: 0;
   }
 
   .row-calendar {
@@ -307,5 +302,48 @@ async function handleLogout() {
 
 .rows.content-ready {
   opacity: 1;
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .rows {
+    padding: 3vh 5vw 2vh 5vw;
+    overflow: visible;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .weather-card {
+    max-width: none;
+    max-height: none;
+    width: 50%;
+    height: 100%;
+  }
+
+  .profile-column {
+    width: 50%;
+  }
+
+  .row-header {
+    flex: 0.6;
+    max-height: 160px;
+  }
+
+  .row-collage {
+    flex: 2;
+    max-height: 50vh;
+    margin-top: 0;
+  }
+
+  .row-calendar {
+    flex: 0.5;
+    max-height: 180px;
+  }
+
+  .row-actions {
+    flex: 0;
+    height: 140px;
+    min-height: 140px;
+  }
 }
 </style>

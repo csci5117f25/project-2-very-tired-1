@@ -62,10 +62,12 @@ const goToLink = () => {
 }
 
 .card-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
+  z-index: 1;
 }
 
 .card-icon::v-deep svg {
