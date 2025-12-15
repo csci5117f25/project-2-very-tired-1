@@ -20,6 +20,7 @@ export default defineConfig({
         short_name: 'TrailLens',
         description: 'Tracking you hike like never before',
         theme_color: '#ffffff', // TODO: Update this once decided upon
+        background_color: '#ffffff',
         icons: [
           {
             src: 'pwa-192x192.png',
