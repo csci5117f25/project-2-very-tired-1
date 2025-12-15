@@ -1,4 +1,6 @@
 <script setup>
+//https://www.geeksforgeeks.org/javascript/how-to-design-a-simple-calendar-using-javascript/
+
 // --- imports ---
 import { computed, watch, ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
@@ -99,12 +101,12 @@ const goToDay = (day) => {
 </script>
 
 <template>
-  <div class="wrapper box">
+  <div class="wrapper box has-background-primary">
     <header>
       <h1 class="title is-5">{{ monthName }}</h1>
     </header>
     <div class="body">
-      <ul class="weekdays has-text-primary">
+      <ul class="weekdays has-text-primary-light">
         <li>Sun</li>
         <li>Mon</li>
         <li>Tue</li>
@@ -113,7 +115,7 @@ const goToDay = (day) => {
         <li>Fri</li>
         <li>Sat</li>
       </ul>
-      <ul class="dates has-text-primary">
+      <ul class="dates has-text-primary-light">
         <li
           v-for="(d, idx) in days"
           :key="idx"

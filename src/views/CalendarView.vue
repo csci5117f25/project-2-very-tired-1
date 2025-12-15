@@ -88,8 +88,10 @@ const goBack = () => {
 .body {
   margin-top: 10px;
   width: 100%;
+  background-color: var();
 }
 
+/* https://levelup.gitconnected.com/dynamic-element-scaling-in-css-7e35ed9a3914 */
 @media (min-width: 500px) {
   .body {
     width: calc(500px + (900px - 500px) * ((100vw - 500px) / (1920px - 500px)));
