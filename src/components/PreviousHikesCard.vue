@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 import TrailLine from '@/components/TrailLine.vue'
+import { useHikeFormatters } from '../composables/useHikeFormatters'
 
 const router = useRouter()
 
@@ -25,44 +26,11 @@ const openHike = () => {
   router.push(`/individualHike/${props.hikeId}`)
 }
 
-const formattedDatetime = computed(() => {
-  if (!props.datetime) return 'N/A'
-  const date = props.datetime.toDate()
-  return (
-    date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }) +
-    ' ' +
-    date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
-  )
-})
-
-const formattedDistance = computed(() => {
-  if (!props.distance) return 'N/A'
-  const km = props.distance / 1000
-  return `${km.toFixed(2)} km`
-})
-
-const formattedDuration = computed(() => {
-  if (!props.duration) return 'N/A'
-  const hours = Math.floor(props.duration / 3600)
-  const minutes = Math.floor((props.duration % 3600) / 60)
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  } else {
-    return `${minutes}m`
-  }
-})
-
 const hasTrailData = computed(() => {
   return props.trail && props.trail.length > 0
 })
+
+const { formatTime, formatDistance, formatDuration } = useHikeFormatters()
 </script>
 
 <template>
@@ -95,16 +63,16 @@ const hasTrailData = computed(() => {
 
     <div class="card-content">
       <p class="title is-5">{{ name }}</p>
-      <p class="subtitle is-5">{{ formattedDatetime }}</p>
+      <p class="subtitle is-5">{{ formatTime(datetime) }}</p>
 
       <div class="columns is-mobile info-container">
         <div class="column has-text-centered">
           <p class="heading">Distance</p>
-          <p class="title is-6">{{ formattedDistance }}</p>
+          <p class="title is-6">{{ formatDistance(distance) }}</p>
         </div>
         <div class="column has-text-centered">
           <p class="heading">Duration</p>
-          <p class="title is-6">{{ formattedDuration }}</p>
+          <p class="title is-6">{{ formatDuration(duration) }}</p>
         </div>
       </div>
     </div>
@@ -154,7 +122,7 @@ const hasTrailData = computed(() => {
 
 .card-content {
   padding: 1rem;
-  background-color: var(--bulma-text-15-soft);
+  background-color: var(--bulma-background);
 }
 
 .info-container {

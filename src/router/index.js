@@ -7,6 +7,7 @@ import MainView from '@/views/MainView.vue'
 import StartHikeView from '@/views/StartHikeView.vue'
 import PreviousHikesView from '@/views/PreviousHikesView.vue'
 import CalendarView from '@/views/CalendarView.vue'
+import IndividualHikeView from '@/views/IndividualHikeView.vue'
 import GoalView from '@/views/GoalView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
@@ -24,6 +25,10 @@ const routes = [
   {
     path: '/calendar',
     component: CalendarView,
+  },
+  {
+    path: '/individualHike/:id',
+    component: IndividualHikeView,
   },
   {
     path: '/goals',
