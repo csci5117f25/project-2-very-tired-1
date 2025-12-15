@@ -8,6 +8,7 @@ import TrailLine from '@/components/TrailLine.vue'
 import HikeMap from '@/components/HikeMap.vue'
 import { db, storage } from '@/firebase_conf'
 import { ref as storageRef, deleteObject } from 'firebase/storage'
+import { increment } from 'firebase/firestore'
 import { useAuth } from '@/composables/useAuth'
 import { getInProgressHike } from '@/composables/getInProgressHike'
 import {
@@ -185,6 +186,8 @@ function resumeHike() {
 async function saveHike(name) {
   try {
     const hikeRef = doc(db, 'users', uid.value, 'hikes', hikeId.value)
+    const userRef = doc(db, 'users', uid.value)
+
     await updateDoc(hikeRef, {
       finishedAt: serverTimestamp(),
       durationSec: elapsed.value,
@@ -193,6 +196,13 @@ async function saveHike(name) {
       name: name,
       distanceMeters: distanceMeters.value,
       elevationGainMeters: elevationGainMeters.value,
+    })
+
+    await updateDoc(userRef, {
+      totalDistance: increment(distanceMeters.value),
+      totalElevation: increment(elevationGainMeters.value),
+      totalHikes: increment(1),
+      updatedAt: serverTimestamp(),
     })
     router.push('/')
   } catch (e) {
@@ -247,6 +257,7 @@ onMounted(async () => {
       trail: [],
       name: '',
       lastUpdatedAt: serverTimestamp(),
+      photoCount: 0,
     })
     hikeId.value = docRef.id
     startTimer()
@@ -382,7 +393,7 @@ watch(
 <template>
   <div class="start-hike">
     <!-- Fullscreen map as background -->
-                    <HikeMap :trail="trail" :currentLocation="coords" :hideRecenter="showPhotoCarousel && photos.length > 0" class="fullscreen-map" />
+    <HikeMap :trail="trail" :currentLocation="coords" :hideRecenter="showPhotoCarousel && photos.length > 0" class="fullscreen-map" />
 
     <!-- Overlay controls -->
     <div class="map-overlay">

@@ -101,9 +101,9 @@ const svgPointsString = computed(() => {
         :cx="svgPointsArray[0].x"
         :cy="svgPointsArray[0].y"
         :r="props.markerRadius"
-        fill="#00ff00"
-        stroke="#000000"
-        :stroke-width="2"
+        fill="#1ba848"
+        stroke="#ff7300"
+        :stroke-width="3"
       />
 
       <!-- End point -->
@@ -112,9 +112,9 @@ const svgPointsString = computed(() => {
         :cx="svgPointsArray[svgPointsArray.length - 1].x"
         :cy="svgPointsArray[svgPointsArray.length - 1].y"
         :r="props.markerRadius"
-        fill="#ff0000"
-        stroke="#000000"
-        :stroke-width="2"
+        fill="#de3535"
+        stroke="#ff7300"
+        :stroke-width="3"
       />
     </svg>
   </div>
