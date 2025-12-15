@@ -1,9 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore'
+import { useCollection } from 'vuefire'
+import { db } from '@/firebase_conf'
 import BaseCard from '@/components/BaseCard.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
 import WeatherWidget from '@/components/WeatherWidget.vue'
+import HikeCollageCard from '@/components/HikeCollageCard.vue'
+import MonthlyCalendarCard from '@/components/MonthlyCalendarCard.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
@@ -11,6 +16,65 @@ const { signOut, user } = useAuth()
 
 const avatarURL = computed(() => user.value?.photoURL)
 const userName = computed(() => user.value?.displayName)
+const uid = computed(() => user.value?.uid)
+
+// Fetch all hikes
+const hikesQuery = computed(() => {
+  if (!uid.value) return null
+  return query(
+    collection(db, 'users', uid.value, 'hikes'),
+    orderBy('startedAt', 'desc')
+  )
+})
+
+const hikes = useCollection(hikesQuery)
+const hikesWithPhotos = ref([])
+const hikesLoaded = ref(false)
+
+// Fetch photos for each hike when hikes change
+watch([hikes, uid], async ([newHikes, newUid]) => {
+  if (newHikes?.length > 0 && newUid) {
+    // Fetch first photo for each hike (for collage display)
+    const hikesData = await Promise.all(
+      newHikes.slice(0, 6).map(async (hike) => {
+        try {
+          const photosQuery = query(
+            collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+          )
+          const photosSnapshot = await getDocs(photosQuery)
+          const firstPhoto = photosSnapshot.docs[0]?.data()
+
+          return {
+            ...hike,
+            id: hike.id,
+            photoUrl: firstPhoto?.downloadURL || null,
+          }
+        } catch (error) {
+          console.error(`Error fetching photos for hike ${hike.id}:`, error)
+          return { ...hike, id: hike.id, photoUrl: null }
+        }
+      })
+    )
+    hikesWithPhotos.value = hikesData
+    hikesLoaded.value = true
+  } else if (newUid && !hikesLoaded.value) {
+    setTimeout(() => { hikesLoaded.value = true }, 1000)
+  }
+}, { immediate: true })
+
+const hikesLoading = computed(() => !hikesLoaded.value)
+
+// Page loading state
+const weatherLoaded = ref(false)
+const pageReady = computed(() => hikesLoaded.value && weatherLoaded.value)
+
+// Fallback: show page after 5 seconds regardless
+setTimeout(() => {
+  weatherLoaded.value = true
+  hikesLoaded.value = true
+}, 5000)
 
 async function handleLogout() {
   await signOut()
@@ -19,8 +83,13 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="rows">
-    <div class="row">
+  <transition name="fade">
+    <div v-if="!pageReady" class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+  </transition>
+  <div class="rows" :class="{ 'content-ready': pageReady }">
+    <div class="row row-header">
       <div class="profile-column">
         <profile-pic
           :src="avatarURL"
@@ -32,34 +101,28 @@ async function handleLogout() {
       </div>
 
       <div class="weather-card">
-        <WeatherWidget />
+        <WeatherWidget @loaded="weatherLoaded = true" />
       </div>
     </div>
 
-    <div class="row">
-      <base-card link="/previousHikes" size="full" title="Previous Hikes">
-        <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 256 256">
-          <path
-            fill="#000000"
-            d="M152 84a36 36 0 1 0-36-36a36 36 0 0 0 36 36m0-48a12 12 0 1 1-12 12a12 12 0 0 1 12-12m52 108v88a12 12 0 0 1-24 0v-76.76c-24.92-3.37-33.94-17.29-41.38-28.76c-1.55-2.39-3.05-4.71-4.67-6.88l-9.54 22L159 166.23a12 12 0 0 1 5 9.77v56a12 12 0 0 1-24 0v-49.83l-25.37-18.12L83 236.78a12 12 0 1 1-22-9.57L118.52 94.9A12 12 0 0 1 135 89a45.53 45.53 0 0 1 8.84 6c6.78 5.89 11.09 12.53 14.89 18.39C166.27 125 170.8 132 192 132a12 12 0 0 1 12 12m-139.4 9.88L39.27 143A12 12 0 0 1 33 127.27l24-56A12 12 0 0 1 72.73 65l25.61 11a12 12 0 1 1-9.45 22L74.3 91.76L59.76 125.7l14.29 6.12a12 12 0 1 1-9.45 22.06"
-          />
-        </svg>
-      </base-card>
+    <div class="row row-collage">
+      <div class="hike-card-wrapper">
+        <HikeCollageCard
+          :hikes="hikesWithPhotos"
+          :totalCount="hikes?.length || 0"
+          :isLoading="hikesLoading"
+        />
+      </div>
     </div>
 
-    <div class="row">
-      <base-card link="/calendar" size="full" title="Calendar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 20 20">
-          <path
-            fill="#000000"
-            d="M1 4c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4zm2 2v12h14V6H3zm2-6h2v2H5V0zm8 0h2v2h-2V0zM5 9h2v2H5V9zm0 4h2v2H5v-2zm4-4h2v2H9V9zm0 4h2v2H9v-2zm4-4h2v2h-2V9zm0 4h2v2h-2v-2z"
-          />
-        </svg>
-      </base-card>
+    <div class="row row-calendar">
+      <div class="calendar-card-wrapper">
+        <MonthlyCalendarCard />
+      </div>
     </div>
 
-    <div class="row">
-      <base-card link="/startHike" size="half" title="Start hike">
+    <div class="row row-actions">
+      <base-card link="/startHike" size="half" title="Start Hike">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="150"
@@ -106,10 +169,14 @@ async function handleLogout() {
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 20px;
   height: 100vh;
-  padding: 5vh 3vw 10vh 3vw;
+  padding: 2vh 5vw 4vh 5vw;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overflow: hidden; /* Prevents page scroll on mobile */
 }
+
 
 .row {
   flex: 1;
@@ -117,6 +184,21 @@ async function handleLogout() {
   justify-content: center;
   align-items: center;
   gap: 20px;
+}
+
+.row-header {
+  flex: 0.8;
+  max-height: 180px;
+}
+
+.weather-card {
+  width: 50%;
+  height: 100%;
+  max-width: 180px;
+  max-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-column {
@@ -135,11 +217,144 @@ async function handleLogout() {
   color: var(--bulma-text);
   height: 20%;
 }
-.weather-card {
-  width: 50%;
+
+.hike-card-wrapper {
+  width: 100%;
   height: 100%;
+}
+
+.row-collage {
+  flex: 1.2;
+  max-height: 300px;
+  margin-top: 0;
+}
+
+.calendar-card-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.row-calendar {
+  flex: 0.6;
+  max-height: 160px;
+}
+
+.row-actions {
+  flex: 0.6;
+  min-height: 80px;
+  margin-bottom: 10px;
+}
+
+/* Mobile screens - tighter layout */
+@media (max-height: 900px) {
+  .rows {
+    gap: 12px;
+    padding: 1.5vh 4vw 2vh 4vw;
+  }
+
+  .row-header {
+    flex: 0.7;
+  }
+
+  .weather-card {
+    max-width: 160px;
+  }
+
+  .row-collage {
+    flex: 1.2;
+    max-height: 280px;
+    margin-top: 0;
+  }
+
+  .row-calendar {
+    flex: 0.5;
+    max-height: 130px;
+  }
+
+  .row-actions {
+    flex: 0.5;
+    min-height: 55px;
+  }
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bulma-body-background-color, #fff);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bulma-border);
+  border-top-color: var(--bulma-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.rows.content-ready {
+  opacity: 1;
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .rows {
+    padding: 3vh 5vw 3vh 5vw;
+    overflow: hidden;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .weather-card {
+    max-width: none;
+    max-height: none;
+    width: 50%;
+    height: 100%;
+  }
+
+  .profile-column {
+    width: 50%;
+  }
+
+  .row-header {
+    flex: 0.6;
+    max-height: 160px;
+  }
+
+  .row-collage {
+    flex: 2;
+    max-height: 50vh;
+    margin-top: 0;
+  }
+
+  .row-calendar {
+    flex: 0.5;
+    max-height: 180px;
+  }
+
+  .row-actions {
+    flex: 0;
+    height: 120px;
+    min-height: 120px;
+  }
 }
 </style>

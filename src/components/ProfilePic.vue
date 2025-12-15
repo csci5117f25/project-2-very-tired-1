@@ -24,10 +24,10 @@ console.log(props.src)
 }
 
 .avatar-ring {
-  height: 90%;
-  aspect-ratio: 1 / 1;
+  height: 80%;
+  max-height: 120px;
+  aspect-ratio: 1;
   display: flex;
-
   padding: 4.5px;
   border-radius: 50%;
   background-color: var(--bulma-primary);
@@ -38,5 +38,6 @@ console.log(props.src)
   border-radius: 50%;
   border: 5px solid var(--bulma-background);
   box-sizing: border-box;
+  box-shadow: 0 4px 12px var(--bulma-text-50);
 }
 </style>

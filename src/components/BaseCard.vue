@@ -7,11 +7,11 @@ import router from '@/router'
 const props = defineProps({
   link: { type: String, required: true },
   title: { type: String, required: true },
-  source: { type: String },
   size: {
     type: String,
     default: 'full',
   },
+  backgroundColor: { type: String, default: null },
 })
 
 // --- Computed ---
@@ -27,8 +27,12 @@ const goToLink = () => {
 
 <template>
   <div
-    class="card-wrapper has-background-primary"
-    :style="{ width: computedWidth }"
+    class="card-wrapper"
+    :class="{ 'has-background-primary': !backgroundColor }"
+    :style="{
+      width: computedWidth,
+      backgroundColor: backgroundColor || undefined
+    }"
     :data-size="size"
     @click="goToLink"
   >
@@ -48,7 +52,9 @@ const goToLink = () => {
   overflow: hidden;
   display: flex;
   height: 100%;
-  border-radius: 20px;
+  border-radius: var(--card-border-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
   align-items: center;
   justify-content: center;
   padding: 0 20px;
@@ -56,9 +62,12 @@ const goToLink = () => {
 }
 
 .card-title {
-  display: flex;
-  align-items: center;
-  width: 30%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1;
 }
 
 .card-icon::v-deep svg {
@@ -78,9 +87,6 @@ const goToLink = () => {
 @media (max-width: 600px) {
   .card-wrapper[data-size='half'] .card-icon {
     display: none;
-  }
-  .card-title {
-    width: 65%;
   }
   .card-icon {
     transform: translateY(0);
