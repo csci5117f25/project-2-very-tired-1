@@ -11,6 +11,7 @@ import LongGoalCard from '@/components/LongGoalCard.vue'
 import GoalCard from '@/components/GoalCard.vue'
 import GoalInputField from '@/components/GoalInputField.vue'
 import ProfilePic from '@/components/ProfilePic.vue'
+import { useRouter } from 'vue-router'
 
 // --- constants: progress bar colors ---
 const clrDistance = '#4de375'
@@ -21,7 +22,7 @@ const clrPhotos = '#4d78e3'
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
 const userName = computed(() => user.value?.displayName)
-const userAvatar = computed(() => user.value?.photoURL)
+const avatarURL = computed(() => user.value?.photoURL)
 
 // --- state: goal type switching ---
 const types = ref(['weekly', 'monthly', 'annualy'])
@@ -43,11 +44,12 @@ const next = () => {
   index.value++
 }
 
+const current = ref(new Date())
+
 // --- computed: date range for weekly/monthly/annual ---
 const range = computed(() => {
-  const current = new Date()
-  const year = current.getFullYear()
-  const month = current.getMonth()
+  const year = current.value.getFullYear()
+  const month = current.value.getMonth()
 
   let start
   let end
@@ -59,8 +61,8 @@ const range = computed(() => {
     start = new Date(year, month, 1)
     end = new Date(year, month + 1, 1)
   } else {
-    const first = current.getDate() - current.getDay()
-    start = new Date(current)
+    const first = current.value.getDate() - current.value.getDay()
+    start = new Date(current.value)
     start.setDate(first)
     end = new Date(start)
     end.setDate(start.getDate() + 7)
@@ -70,6 +72,15 @@ const range = computed(() => {
   end.setHours(0, 0, 0, 0)
   return { start, end }
 })
+
+const curDay = computed(() => current.value.getDate())
+
+const curMonthYear = computed(() =>
+  current.value.toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  }),
+)
 
 // --- hikes data ---
 const { hikes } = useHikesRange(uid, range)
@@ -97,25 +108,41 @@ const totalPhotos = computed(() => {
   }
   return count
 })
-// --- computed: month, week, year
-const currentDate = new Date().toLocaleDateString(undefined, {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-})
+
+// --- router ---
+const router = useRouter()
 </script>
 
 <template>
   <div class="wrapper">
-    <div class="nav">
-      <h2>Dash board</h2>
+    <div class="user-info">
+      <div class="user-leftcolumn">
+        <profile-pic
+          class="avatar"
+          :src="avatarURL"
+          style="cursor: pointer"
+          :userName="userName"
+          @click="handleLogout"
+        />
+        <div>
+          <p class="userName title is-5">{{ userName }}</p>
+          <p class="greeting subtitle is-6">Welcome Back!</p>
+        </div>
+      </div>
+
+      <div class="user-rightcolumn">
+        <div class="date">
+          <p class="title is-5">{{ curDay }}</p>
+          <p class="subtitle is-6">{{ curMonthYear }}</p>
+        </div>
+        <div class="date-btn">
+          <button class="button is-large is-white is-outlined" @click="router.push('/calendar')">
+            <b-icon icon="calendar" />
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="info">
-      <profile-pic :src="userAvatar" :size="100" style="cursor: pointer" @click="handleLogout" />
-      <p class="userName">Welcome back {{ userName }} !</p>
-      <p class="date">Today is {{ currentDate }}</p>
-    </div>
+
     <div class="overview">
       <LongGoalCard
         class="long-card"
@@ -204,14 +231,30 @@ const currentDate = new Date().toLocaleDateString(undefined, {
 </template>
 
 <style scoped>
-.nav {
-  border-bottom: 2 solid #fff;
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 11vh;
+  margin: 20px 20px 0px 20px;
 }
-.info {
+
+.user-leftcolumn {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-rightcolumn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.date {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 20px;
+  align-items: flex-end;
 }
 .overview {
   display: flex;
@@ -272,10 +315,34 @@ const currentDate = new Date().toLocaleDateString(undefined, {
   margin-top: 10px;
   width: 100%;
 }
+
 @media (min-width: 500px) {
   .wrapper {
     width: calc(500px + (900px - 500px) * ((100vw - 500px) / (1920px - 500px)));
     margin: 0 auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .user-info {
+    height: 10vh;
+  }
+  .userName {
+    display: none;
+  }
+  .greeting {
+    display: none;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .date-btn .button {
+    border-color: #000;
+    color: #000;
+  }
+
+  .date-btn .button .icon {
+    color: #000;
   }
 }
 </style>
