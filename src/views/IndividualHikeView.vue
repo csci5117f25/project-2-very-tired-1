@@ -10,6 +10,7 @@ import HikeContentCard from '../components/HikeContentCard.vue'
 import PhotoModal from '../components/PhotoModal.vue'
 import { useAuth } from '../composables/useAuth'
 import { useHikeFormatters } from '../composables/useHikeFormatters'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
 const { user } = useAuth()
@@ -96,9 +97,8 @@ function closePhotoModal() {
 <template>
   <div class="page-wrapper">
     <!-- Loading State -->
-    <div v-if="!hikeWithPhotos" class="loading-container">
-      <b-loading :is-full-page="false" :active="true"></b-loading>
-      <p class="has-text-centered">Loading hike...</p>
+    <div v-if="!hikeWithPhotos">
+      <LoadingSpinner />
     </div>
 
     <!-- Content -->
@@ -142,15 +142,6 @@ function closePhotoModal() {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
 }
 
 .hike-detail-container {
