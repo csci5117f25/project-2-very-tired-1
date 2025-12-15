@@ -318,8 +318,8 @@ async function handleLogout() {
 /* Desktop layout */
 @media (min-width: 1024px) {
   .rows {
-    padding: 3vh 5vw 2vh 5vw;
-    overflow: visible;
+    padding: 3vh 5vw 3vh 5vw;
+    overflow: hidden;
     max-width: 1200px;
     margin: 0 auto;
   }
@@ -353,8 +353,8 @@ async function handleLogout() {
 
   .row-actions {
     flex: 0;
-    height: 140px;
-    min-height: 140px;
+    height: 120px;
+    min-height: 120px;
   }
 }
 </style>
