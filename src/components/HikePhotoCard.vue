@@ -21,6 +21,12 @@ function handleClick() {
       v-if="photo?.downloadURL"
       :src="photo.downloadURL"
       :alt="photo.description || 'Hike photo'"
+      class="photo-image-blur"
+    />
+    <img
+      v-if="photo?.downloadURL"
+      :src="photo.downloadURL"
+      :alt="photo.description || 'Hike photo'"
       class="photo-image"
     />
     <div v-else class="no-image-placeholder">
@@ -51,7 +57,19 @@ function handleClick() {
 .photo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  z-index: 2;
+  position: absolute;
+}
+
+.photo-image-blur {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  filter: blur(24px) saturate(120%);
+  transform: scale(1.08);
+  opacity: 0.8;
+  z-index: 1;
 }
 
 .no-image-placeholder {
