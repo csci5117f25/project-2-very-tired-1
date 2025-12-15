@@ -193,7 +193,7 @@ async function fetchWeather(lat, lon) {
 
   description.value = props.textDescription || 'Clear'
 
-  // Determine day/night using astronomical calculation
+  // Determine day/night using astronomical calculation - Used Claude AI to generate math formulas and verify the formula
   const sunTimes = calculateSunTimes(lat, lon)
   isDay.value = isDaytimeByLocation(lat, lon)
 
@@ -202,7 +202,7 @@ async function fetchWeather(lat, lon) {
     sunset: `${Math.floor(sunTimes.sunset)}:${String(Math.round((sunTimes.sunset % 1) * 60)).padStart(2, '0')}`,
     isDaytime: isDay.value
   })
-
+  // End Claude AI validated math formulas for day/night calculation
   iconUrl.value = `/weather-icons/${getIcon(description.value, isDay.value)}`
 
   loading.value = false
