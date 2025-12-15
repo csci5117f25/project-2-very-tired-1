@@ -119,10 +119,14 @@ const goToDay = (day) => {
         <li
           v-for="(d, idx) in days"
           :key="idx"
-          :class="[d.type === 'prev' || d.type === 'next' ? 'inactive' : '']"
           @click="goToDay(d.day)"
+          :class="{ isToday: d.isToday }"
         >
-          <p :class="hikesOn(d.day).length > 0 ? 'hasHikes' : ''">
+          <p v-if="hikesOn(d.day).length > 0" class="hike-icon">
+            <img src="/calendar-icons/noun-hiking-boot-8115251.svg" alt="hike" />
+          </p>
+
+          <p v-else :class="{ inactive: d.type === 'prev' }">
             {{ d.day }}
           </p>
         </li>
@@ -132,6 +136,15 @@ const goToDay = (day) => {
 </template>
 
 <style scoped>
+.wrapper {
+  overflow: hidden;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--card-shadow);
+}
 ul {
   list-style: none;
   flex-wrap: wrap;
@@ -143,6 +156,7 @@ ul {
   text-decoration: underline;
   font-weight: bold;
 }
+
 li {
   width: calc(100% / 7);
   height: 30px;
@@ -156,23 +170,43 @@ li {
   box-sizing: border-box;
 }
 
+.dates li {
+  margin-bottom: 20px;
+}
+
 .dates p {
   align-items: center;
   justify-content: center;
-
-  width: 28px;
-  height: 28px;
   line-height: 28px;
 
   margin: 0 auto;
   border-radius: 50%;
   display: flex;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--bulma-border);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bulma-dark);
+  overflow: hidden;
+}
+.isToday p {
+  border: 2px solid var(--bulma-dark);
+}
+.dates p.inactive {
+  border: none;
+  color: var(--bulma-grey);
+  opacity: 0.5;
 }
 
-.dates p.hasHikes {
-  font-weight: 600;
-  color: black;
+.hike-icon {
   background-color: var(--bulma-primary);
+  padding: 8px;
+}
+
+.hike-icon img {
+  width: 100%;
+  height: 100%;
 }
 
 @media (prefers-color-scheme: light) {
