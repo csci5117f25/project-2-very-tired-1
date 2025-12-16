@@ -1,10 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import { db } from '@/firebase_conf'
-import BaseCard from '@/components/main/BaseCard.vue'
 import ProfilePic from '@/components/main/ProfilePic.vue'
 import WeatherWidget from '@/components/main/WeatherWidget.vue'
 import HikeCollageCard from '@/components/HikeCollageCard.vue'
@@ -12,9 +10,9 @@ import MonthlyCalendarCard from '@/components/main/MonthlyCalendarCard.vue'
 import StartHikeCard from '@/components/main/StartHikeCard.vue'
 import GoalCard from '@/components/main/GoalCard.vue'
 import { useAuth } from '@/composables/useAuth'
+import LogoutBtn from '@/components/main/logoutBtn.vue'
 
-const router = useRouter()
-const { signOut, user } = useAuth()
+const { user } = useAuth()
 
 const avatarURL = computed(() => user.value?.photoURL)
 const userName = computed(() => user.value?.displayName)
@@ -80,13 +78,6 @@ setTimeout(() => {
   weatherLoaded.value = true
   hikesLoaded.value = true
 }, 5000)
-
-async function handleLogout() {
-  if (confirm("Click 'OK' to log out.")) {
-    await signOut()
-    router.replace('/login')
-  }
-}
 </script>
 
 <template>
@@ -103,9 +94,10 @@ async function handleLogout() {
           style="cursor: pointer"
           :userName="userName"
           alignment="end"
-          @click="handleLogout"
         />
+
         <div class="userName">{{ userName }}</div>
+        <div class="logout"><LogoutBtn /></div>
       </div>
 
       <div class="weather-card">
