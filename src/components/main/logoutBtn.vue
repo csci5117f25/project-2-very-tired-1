@@ -31,7 +31,7 @@ button {
   justify-content: flex-start;
   gap: 5px;
   padding: 2px;
-  border-radius: 7cqb;
+  border-radius: 7px;
 }
 
 .sign {
