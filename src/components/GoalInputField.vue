@@ -62,9 +62,7 @@ async function updateGoal() {
     </div>
 
     <div class="setting-btn">
-      <button class="button is-small is-white is-outlined" @click.prevent="updateGoal">
-        Update
-      </button>
+      <button class="button is-small is-white is-outlined" @click="updateGoal">Update</button>
     </div>
   </div>
 </template>
@@ -83,7 +81,6 @@ async function updateGoal() {
 .setting-input input {
   background-color: rgba(255, 255, 255, 0.8);
   border: 2px solid transparent;
-  font-weight: bold;
   border-radius: 20px;
   height: 28px;
   text-align: center;
