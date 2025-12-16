@@ -62,7 +62,9 @@ async function updateGoal() {
     </div>
 
     <div class="setting-btn">
-      <button class="button is-small is-white is-outlined" @click="updateGoal">Update</button>
+      <button class="button is-small is-white is-outlined" @click.prevent="updateGoal">
+        Update
+      </button>
     </div>
   </div>
 </template>
