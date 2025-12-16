@@ -9,6 +9,7 @@ import ProfilePic from '@/components/ProfilePic.vue'
 import WeatherWidget from '@/components/WeatherWidget.vue'
 import HikeCollageCard from '@/components/HikeCollageCard.vue'
 import MonthlyCalendarCard from '@/components/MonthlyCalendarCard.vue'
+import StartHikeCard from '@/components/StartHikeCard.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
@@ -21,10 +22,7 @@ const uid = computed(() => user.value?.uid)
 // Fetch all hikes
 const hikesQuery = computed(() => {
   if (!uid.value) return null
-  return query(
-    collection(db, 'users', uid.value, 'hikes'),
-    orderBy('startedAt', 'desc')
-  )
+  return query(collection(db, 'users', uid.value, 'hikes'), orderBy('startedAt', 'desc'))
 })
 
 const hikes = useCollection(hikesQuery)
@@ -32,37 +30,43 @@ const hikesWithPhotos = ref([])
 const hikesLoaded = ref(false)
 
 // Fetch photos for each hike when hikes change
-watch([hikes, uid], async ([newHikes, newUid]) => {
-  if (newHikes?.length > 0 && newUid) {
-    // Fetch first photo for each hike (for collage display)
-    const hikesData = await Promise.all(
-      newHikes.slice(0, 6).map(async (hike) => {
-        try {
-          const photosQuery = query(
-            collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
-            orderBy('createdAt', 'desc'),
-            limit(1)
-          )
-          const photosSnapshot = await getDocs(photosQuery)
-          const firstPhoto = photosSnapshot.docs[0]?.data()
+watch(
+  [hikes, uid],
+  async ([newHikes, newUid]) => {
+    if (newHikes?.length > 0 && newUid) {
+      // Fetch first photo for each hike (for collage display)
+      const hikesData = await Promise.all(
+        newHikes.slice(0, 6).map(async (hike) => {
+          try {
+            const photosQuery = query(
+              collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
+              orderBy('createdAt', 'desc'),
+              limit(1),
+            )
+            const photosSnapshot = await getDocs(photosQuery)
+            const firstPhoto = photosSnapshot.docs[0]?.data()
 
-          return {
-            ...hike,
-            id: hike.id,
-            photoUrl: firstPhoto?.downloadURL || null,
+            return {
+              ...hike,
+              id: hike.id,
+              photoUrl: firstPhoto?.downloadURL || null,
+            }
+          } catch (error) {
+            console.error(`Error fetching photos for hike ${hike.id}:`, error)
+            return { ...hike, id: hike.id, photoUrl: null }
           }
-        } catch (error) {
-          console.error(`Error fetching photos for hike ${hike.id}:`, error)
-          return { ...hike, id: hike.id, photoUrl: null }
-        }
-      })
-    )
-    hikesWithPhotos.value = hikesData
-    hikesLoaded.value = true
-  } else if (newUid && !hikesLoaded.value) {
-    setTimeout(() => { hikesLoaded.value = true }, 1000)
-  }
-}, { immediate: true })
+        }),
+      )
+      hikesWithPhotos.value = hikesData
+      hikesLoaded.value = true
+    } else if (newUid && !hikesLoaded.value) {
+      setTimeout(() => {
+        hikesLoaded.value = true
+      }, 1000)
+    }
+  },
+  { immediate: true },
+)
 
 const hikesLoading = computed(() => !hikesLoaded.value)
 
@@ -77,8 +81,10 @@ setTimeout(() => {
 }, 5000)
 
 async function handleLogout() {
-  await signOut()
-  router.replace('/login')
+  if (confirm("Click 'OK' to log out.")) {
+    await signOut()
+    router.replace('/login')
+  }
 }
 </script>
 
@@ -95,6 +101,7 @@ async function handleLogout() {
           :src="avatarURL"
           style="cursor: pointer"
           :userName="userName"
+          alignment="end"
           @click="handleLogout"
         />
         <div class="userName">{{ userName }}</div>
@@ -122,29 +129,9 @@ async function handleLogout() {
     </div>
 
     <div class="row row-actions">
-      <base-card link="/startHike" size="half" title="Start Hike">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="150"
-          height="150"
-          viewBox="0 0 24 24"
-          fill="#000000"
-        >
-          <g
-            fill="none"
-            stroke="#000000"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-          >
-            <path d="M14.25 11.25V.75l4.5 3.75l-4.5 3" />
-            <path d="M11.25 3.75h-.75a9.75 9.75 0 0 0 0 19.5h12.75m0-19.5H21" />
-            <path
-              d="M23.25 11.25H10.5a2.25 2.25 0 0 0 0 4.5h12.75M20.786 7.5H18.75m-10.106.3a6.1 6.1 0 0 0-2.436 1.512M4.68 12.066a5.85 5.85 0 0 0 0 2.868m1.528 2.754A6.1 6.1 0 0 0 8.644 19.2m3.158.3H14.7m3.188 0h2.898"
-            />
-          </g>
-        </svg>
-      </base-card>
+      <div class="start-hike-card-wrapper">
+        <StartHikeCard />
+      </div>
       <base-card link="/goals" size="half" title="Goals">
         <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 16 16">
           <path
@@ -177,7 +164,6 @@ async function handleLogout() {
   overflow: hidden; /* Prevents page scroll on mobile */
 }
 
-
 .row {
   flex: 1;
   display: flex;
@@ -207,6 +193,12 @@ async function handleLogout() {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.start-hike-card-wrapper {
+  width: 50%;
+  height: 100%;
+  cursor: pointer;
 }
 
 .userName {
@@ -298,7 +290,9 @@ async function handleLogout() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-enter-active,

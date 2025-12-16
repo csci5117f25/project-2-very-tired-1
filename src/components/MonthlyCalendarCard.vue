@@ -76,12 +76,12 @@ const goToCalendar = () => {
 const weekRange = computed(() => {
   const startMonth = weekStart.toLocaleString('en-US', { month: 'short' })
   const startDay = weekStart.getDate()
-  
+
   const lastDay = new Date(weekEnd)
   lastDay.setDate(weekEnd.getDate() - 1)
   const endMonth = lastDay.toLocaleString('en-US', { month: 'short' })
   const endDay = lastDay.getDate()
-  
+
   if (startMonth === endMonth) {
     return `${startMonth} ${startDay} - ${endDay}`
   } else {
@@ -98,7 +98,7 @@ const weekRange = computed(() => {
         <p class="calendar-link" @click="goToCalendar">View Full Calendar</p>
       </div>
 
-        <div class="week-row">
+      <div class="week-row">
         <div
           v-for="(day, idx) in weekDays"
           :key="idx"
@@ -107,7 +107,7 @@ const weekRange = computed(() => {
         >
           <span class="day-name">{{ dayNames[idx] }}</span>
           <span v-if="hasHikeOnDay(day)" class="day-circle hike-icon">
-            <img src="/calendar-icons/noun-hiking-boot-8115251.svg" alt="hike">
+            <img src="/calendar-icons/noun-hiking-boot-8115251.svg" alt="hike" />
           </span>
           <span v-else class="day-circle">{{ day.dayNumber }}</span>
         </div>
@@ -154,6 +154,7 @@ const weekRange = computed(() => {
   color: var(--bulma-dark);
   margin: 0;
   cursor: pointer;
+  text-decoration: underline;
 }
 
 .week-row {

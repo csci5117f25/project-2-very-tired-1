@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="entry-div has-background-primary box">
+  <div class="entry-div has-background-primary box mb-0">
     <p class="value has-text-dark">{{ count }}</p>
     <p class="entry-label has-text-dark">Total {{ unit }}</p>
   </div>
@@ -17,15 +17,14 @@ defineProps({
 .entry-div {
   overflow: hidden;
   border: var(--card-border);
-
   height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: var(--card-shadow);
-
   border-radius: 15px;
   padding: 10px;
 }
+
 .entry-div p {
   text-align: center;
 }

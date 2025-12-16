@@ -3,11 +3,11 @@
 const props = defineProps({
   src: { type: String, default: null },
   alt: { type: String, default: 'Profile Picture' },
+  alignment: { type: String, default: 'center' },
   userName: { type: String, required: true },
 })
 
 const srcToUse = props.src
-console.log(props.src)
 </script>
 
 <template>
@@ -21,6 +21,8 @@ console.log(props.src)
 <style scoped>
 .avatar-wrapper {
   height: 100%;
+  display: flex;
+  align-items: v-bind(alignment);
 }
 
 .avatar-ring {
