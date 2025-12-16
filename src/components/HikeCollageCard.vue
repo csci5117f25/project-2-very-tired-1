@@ -34,6 +34,10 @@ const goToHike = (hikeId) => {
   router.push(`/previousHikes?scrollTo=${hikeId}`)
 }
 
+const goToPreviousHikes = () => {
+  router.push('/previousHikes')
+}
+
 // Determine grid layout based on number of hikes
 const gridClass = computed(() => {
   const count = displayHikes.value.length
@@ -48,6 +52,10 @@ const gridClass = computed(() => {
 <template>
   <div class="collage-wrapper">
     <div class="collage-card">
+      <div class="card-header-row">
+        <p class="title">Recent Hikes</p>
+        <p class="view-all-link" @click="goToPreviousHikes">View Previous Hikes</p>
+      </div>
       <div v-if="isLoading" class="loading-state">
         <!-- Loading placeholder -->
       </div>
@@ -110,6 +118,28 @@ const gridClass = computed(() => {
   box-shadow: var(--card-shadow);
   background-color: var(--bulma-text-15-soft);
   position: relative;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.card-header-row .title {
+  margin-bottom: 0;
+  font-size: 1rem;
+  color: var(--bulma-text-70-bold);
+}
+
+.view-all-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bulma-dark);
+  margin: 0;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .loading-state {
@@ -257,4 +287,3 @@ const gridClass = computed(() => {
   }
 }
 </style>
-
