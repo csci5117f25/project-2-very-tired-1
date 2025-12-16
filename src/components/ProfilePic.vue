@@ -3,6 +3,7 @@
 const props = defineProps({
   src: { type: String, default: null },
   alt: { type: String, default: 'Profile Picture' },
+  alignment: { type: String, default: 'center' },
   userName: { type: String, required: true },
 })
 
@@ -22,7 +23,7 @@ console.log(props.src)
 .avatar-wrapper {
   height: 100%;
   display: flex;
-  align-items: center;
+  align-items: v-bind(alignment);
 }
 
 .avatar-ring {

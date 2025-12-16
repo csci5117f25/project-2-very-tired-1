@@ -100,6 +100,7 @@ async function handleLogout() {
           :src="avatarURL"
           style="cursor: pointer"
           :userName="userName"
+          alignment="end"
           @click="handleLogout"
         />
         <div class="userName">{{ userName }}</div>
