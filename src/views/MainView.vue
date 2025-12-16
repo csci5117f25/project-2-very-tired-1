@@ -21,10 +21,7 @@ const uid = computed(() => user.value?.uid)
 // Fetch all hikes
 const hikesQuery = computed(() => {
   if (!uid.value) return null
-  return query(
-    collection(db, 'users', uid.value, 'hikes'),
-    orderBy('startedAt', 'desc')
-  )
+  return query(collection(db, 'users', uid.value, 'hikes'), orderBy('startedAt', 'desc'))
 })
 
 const hikes = useCollection(hikesQuery)
@@ -32,37 +29,43 @@ const hikesWithPhotos = ref([])
 const hikesLoaded = ref(false)
 
 // Fetch photos for each hike when hikes change
-watch([hikes, uid], async ([newHikes, newUid]) => {
-  if (newHikes?.length > 0 && newUid) {
-    // Fetch first photo for each hike (for collage display)
-    const hikesData = await Promise.all(
-      newHikes.slice(0, 6).map(async (hike) => {
-        try {
-          const photosQuery = query(
-            collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
-            orderBy('createdAt', 'desc'),
-            limit(1)
-          )
-          const photosSnapshot = await getDocs(photosQuery)
-          const firstPhoto = photosSnapshot.docs[0]?.data()
+watch(
+  [hikes, uid],
+  async ([newHikes, newUid]) => {
+    if (newHikes?.length > 0 && newUid) {
+      // Fetch first photo for each hike (for collage display)
+      const hikesData = await Promise.all(
+        newHikes.slice(0, 6).map(async (hike) => {
+          try {
+            const photosQuery = query(
+              collection(db, 'users', newUid, 'hikes', hike.id, 'photos'),
+              orderBy('createdAt', 'desc'),
+              limit(1),
+            )
+            const photosSnapshot = await getDocs(photosQuery)
+            const firstPhoto = photosSnapshot.docs[0]?.data()
 
-          return {
-            ...hike,
-            id: hike.id,
-            photoUrl: firstPhoto?.downloadURL || null,
+            return {
+              ...hike,
+              id: hike.id,
+              photoUrl: firstPhoto?.downloadURL || null,
+            }
+          } catch (error) {
+            console.error(`Error fetching photos for hike ${hike.id}:`, error)
+            return { ...hike, id: hike.id, photoUrl: null }
           }
-        } catch (error) {
-          console.error(`Error fetching photos for hike ${hike.id}:`, error)
-          return { ...hike, id: hike.id, photoUrl: null }
-        }
-      })
-    )
-    hikesWithPhotos.value = hikesData
-    hikesLoaded.value = true
-  } else if (newUid && !hikesLoaded.value) {
-    setTimeout(() => { hikesLoaded.value = true }, 1000)
-  }
-}, { immediate: true })
+        }),
+      )
+      hikesWithPhotos.value = hikesData
+      hikesLoaded.value = true
+    } else if (newUid && !hikesLoaded.value) {
+      setTimeout(() => {
+        hikesLoaded.value = true
+      }, 1000)
+    }
+  },
+  { immediate: true },
+)
 
 const hikesLoading = computed(() => !hikesLoaded.value)
 
@@ -77,8 +80,10 @@ setTimeout(() => {
 }, 5000)
 
 async function handleLogout() {
-  await signOut()
-  router.replace('/login')
+  if (confirm("Click 'OK' to log out.")) {
+    await signOut()
+    router.replace('/login')
+  }
 }
 </script>
 
@@ -176,7 +181,6 @@ async function handleLogout() {
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevents page scroll on mobile */
 }
-
 
 .row {
   flex: 1;
@@ -298,7 +302,9 @@ async function handleLogout() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-enter-active,

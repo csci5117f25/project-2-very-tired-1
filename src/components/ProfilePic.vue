@@ -21,6 +21,8 @@ console.log(props.src)
 <style scoped>
 .avatar-wrapper {
   height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .avatar-ring {
