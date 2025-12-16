@@ -117,4 +117,10 @@ async function updateGoal() {
     color: #000;
   }
 }
+
+@media (max-width: 550px) {
+  .setting-entry {
+    margin: 0;
+  }
+}
 </style>
