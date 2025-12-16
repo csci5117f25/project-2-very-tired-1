@@ -104,7 +104,11 @@ setTimeout(() => {
         <WeatherWidget @loaded="weatherLoaded = true" />
       </div>
     </div>
-
+    <div class="row row-calendar">
+      <div class="calendar-card-wrapper">
+        <MonthlyCalendarCard />
+      </div>
+    </div>
     <div class="row row-collage">
       <div class="hike-card-wrapper">
         <HikeCollageCard
@@ -112,12 +116,6 @@ setTimeout(() => {
           :totalCount="hikes?.length || 0"
           :isLoading="hikesLoading"
         />
-      </div>
-    </div>
-
-    <div class="row row-calendar">
-      <div class="calendar-card-wrapper">
-        <MonthlyCalendarCard />
       </div>
     </div>
 
