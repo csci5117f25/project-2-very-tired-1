@@ -133,7 +133,7 @@ const router = useRouter()
       <div class="user-rightcolumn">
         <div class="date">
           <p class="title is-5">{{ curDay }}</p>
-          <p class="subtitle is-6">{{ curMonthYear }}</p>
+          <p class="subtitle is-6">{{ curMonthYear.slice(0, 3) }}</p>
         </div>
         <div class="date-btn">
           <button class="button is-large is-white is-outlined" @click="router.push('/calendar')">
@@ -146,7 +146,7 @@ const router = useRouter()
     <div class="overview">
       <LongGoalCard
         class="long-card"
-        :count1="Math.floor(Number(userData.totalDistance / 1000))"
+        :count1="(Number(userData.totalDistance) / 1000).toFixed(1)"
         :count2="Math.floor(Number(userData.totalElevation))"
       >
         <template #svg1>
@@ -173,7 +173,7 @@ const router = useRouter()
 
         <ProgressBar
           :key="goals.type + 'distance'"
-          :current="Math.floor(Number(totalKms))"
+          :current="Number(totalKms).toFixed(1)"
           :target="goals.distanceKmTarget"
           :color="clrDistance"
           :unit="'KMs'"
