@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const startHike = () => {
-  router.push('/startHike')
+  router.push('/goals')
 }
 </script>
 

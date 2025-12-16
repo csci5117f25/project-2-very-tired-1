@@ -146,7 +146,7 @@ const router = useRouter()
     <div class="overview">
       <LongGoalCard
         class="long-card"
-        :count1="Math.floor(Number(userData.totalDistance / 1000) * 100)"
+        :count1="Math.floor(Number(userData.totalDistance / 1000))"
         :count2="Math.floor(Number(userData.totalElevation))"
       >
         <template #svg1>

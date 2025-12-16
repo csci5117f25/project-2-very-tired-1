@@ -29,7 +29,7 @@ switch (props.unit) {
 
 // --- state ---
 const count = ref(props.target)
-
+const invalid = ref(false)
 // --- auth ---
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)
@@ -37,6 +37,7 @@ const uid = computed(() => user.value?.uid)
 // --- methods ---
 async function updateGoal() {
   if (!/^\d+$/.test(count.value) || count.value === 0) {
+    invalid.value = true
     return
   }
   try {
@@ -57,8 +58,13 @@ async function updateGoal() {
       <h2 class="has-text-dark">{{ unit }}:</h2>
     </div>
 
-    <div class="setting-input">
-      <input v-model.number="count" class="has-text-dark" />
+    <div class="setting-input" :class="{ invalid: invalid }">
+      <input
+        v-model.number="count"
+        class="has-text-dark"
+        inputmode="numeric"
+        @input="invalid = false"
+      />
     </div>
 
     <div class="setting-btn">
@@ -92,6 +98,10 @@ async function updateGoal() {
 .setting-input input:focus {
   outline: none;
   border: 3px solid #ccc;
+}
+
+.setting-input.invalid input {
+  border: 3px solid #e58484;
 }
 
 .setting-btn button {
