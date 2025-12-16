@@ -10,18 +10,18 @@ defineProps({
   <div class="long-entry">
     <div class="long-entry-div">
       <div class="long-entry-content">
-        <p class="value has-text-dark has-text-weight-bold">{{ count1 }}</p>
+        <p class="value has-text-weight-bold">{{ count1 }}</p>
         <slot name="svg1"></slot>
       </div>
-      <h2 class="long-entry-label has-text-dark">Total Distance (km)</h2>
+      <h2 class="long-entry-label">Total Distance (km)</h2>
     </div>
 
     <div class="long-entry-div">
       <div class="long-entry-content">
-        <p class="value has-text-dark has-text-weight-bold">{{ count2 }}</p>
+        <p class="value has-text-weight-bold">{{ count2 }}</p>
         <slot name="svg2"></slot>
       </div>
-      <h2 class="long-entry-label has-text-dark">Total Elevation (m)</h2>
+      <h2 class="long-entry-label">Total Elevation (m)</h2>
     </div>
   </div>
 </template>

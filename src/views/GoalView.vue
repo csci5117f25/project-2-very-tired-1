@@ -150,11 +150,11 @@ const router = useRouter()
         :count2="Math.floor(Number(userData.totalElevation))"
       >
         <template #svg1>
-          <b-icon icon="shoe-print" size="is-large" type="is-dark"></b-icon>
+          <b-icon icon="shoe-print" size="is-large" class="has-text"></b-icon>
         </template>
 
         <template #svg2>
-          <b-icon icon="stairs" size="is-large" type="is-dark"></b-icon>
+          <b-icon icon="stairs" size="is-large" class="has-text"></b-icon>
         </template>
       </LongGoalCard>
 
@@ -168,7 +168,7 @@ const router = useRouter()
       <h2 class="label">{{ goals?.type.charAt(0).toUpperCase() + goals?.type.slice(1) }} Goals</h2>
       <div class="progressBar-list">
         <div class="nav-btn" @click="previous">
-          <b-icon icon="chevron-left" size="is-medium" type="is-dark"></b-icon>
+          <b-icon icon="chevron-left" size="is-medium" class="has-text"></b-icon>
         </div>
 
         <ProgressBar
@@ -196,7 +196,7 @@ const router = useRouter()
         />
 
         <div class="nav-btn" @click="next">
-          <b-icon icon="chevron-right" size="is-medium" type="is-dark"></b-icon>
+          <b-icon icon="chevron-right" size="is-medium"></b-icon>
         </div>
       </div>
 

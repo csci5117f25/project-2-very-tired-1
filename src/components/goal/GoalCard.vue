@@ -8,8 +8,8 @@ defineProps({
 
 <template>
   <div class="entry-div box mb-0">
-    <p class="value has-text-dark">{{ count }}</p>
-    <p class="entry-label has-text-dark">Total {{ unit }}</p>
+    <p class="value">{{ count }}</p>
+    <p class="entry-label">Total {{ unit }}</p>
   </div>
 </template>
 

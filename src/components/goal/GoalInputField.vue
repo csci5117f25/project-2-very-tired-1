@@ -55,7 +55,7 @@ async function updateGoal() {
 <template>
   <div class="setting-entry">
     <div class="setting-label">
-      <h2 class="has-text-dark">{{ unit }}:</h2>
+      <h2>{{ unit }}:</h2>
     </div>
 
     <div class="setting-input" :class="{ invalid: invalid }">
@@ -68,7 +68,7 @@ async function updateGoal() {
     </div>
 
     <div class="setting-btn">
-      <button class="button is-small is-outlined" @click="updateGoal">Update</button>
+      <button class="button is-small is-white is-outlined" @click="updateGoal">Update</button>
     </div>
   </div>
 </template>
