@@ -15,6 +15,14 @@ defineProps({
 
 <style scoped>
 .entry-div {
+  overflow: hidden;
+  border: var(--card-border);
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--card-shadow);
+
   border-radius: 15px;
   padding: 10px;
 }

@@ -33,6 +33,11 @@ defineProps({
   justify-content: center;
   gap: 16px;
   border-radius: 15px;
+
+  overflow: hidden;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .long-entry-content {

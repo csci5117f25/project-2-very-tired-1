@@ -146,8 +146,8 @@ const router = useRouter()
     <div class="overview">
       <LongGoalCard
         class="long-card"
-        :count1="Number((userData.totalDistance / 1000).toFixed(2))"
-        :count2="userData.totalElevation"
+        :count1="Math.floor(Number(userData.totalDistance / 1000) * 100)"
+        :count2="Math.floor(Number(userData.totalElevation))"
       >
         <template #svg1>
           <b-icon icon="shoe-print" size="is-large" type="is-dark"></b-icon>
@@ -173,7 +173,7 @@ const router = useRouter()
 
         <ProgressBar
           :key="goals.type + 'distance'"
-          :current="Number(totalKms.toFixed(2))"
+          :current="Math.floor(Number(totalKms))"
           :target="goals.distanceKmTarget"
           :color="clrDistance"
           :unit="'KMs'"
@@ -259,7 +259,7 @@ const router = useRouter()
 .overview {
   display: flex;
   gap: 16px;
-  padding: 20px;
+  padding: 20px 20px 16px 20px;
 }
 
 .long-card {
@@ -277,7 +277,10 @@ const router = useRouter()
 .goal {
   border-radius: 15px;
   padding: 5px;
-  margin: 20px;
+  margin: 0px 20px 0px 20px;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .progressBar-list {
@@ -314,6 +317,13 @@ const router = useRouter()
 .wrapper {
   margin-top: 10px;
   width: 100%;
+}
+
+.label {
+  margin: auto;
+  text-align: center;
+  width: 100%;
+  padding: 10px;
 }
 
 /* https://levelup.gitconnected.com/dynamic-element-scaling-in-css-7e35ed9a3914 */
