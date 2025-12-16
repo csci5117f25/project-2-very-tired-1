@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="entry-div has-background-primary">
+  <div class="entry-div has-background-primary box">
     <p class="value has-text-dark">{{ count }}</p>
     <p class="entry-label has-text-dark">Total {{ unit }}</p>
   </div>
