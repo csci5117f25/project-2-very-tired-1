@@ -164,7 +164,7 @@ const router = useRouter()
       </div>
     </div>
 
-    <div class="goal has-background-primary">
+    <div class="goal">
       <h2 class="label">{{ goals?.type.charAt(0).toUpperCase() + goals?.type.slice(1) }} Goals</h2>
       <div class="progressBar-list">
         <div class="nav-btn" @click="previous">

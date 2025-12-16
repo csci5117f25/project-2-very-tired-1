@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="long-entry has-background-primary">
+  <div class="long-entry">
     <div class="long-entry-div">
       <div class="long-entry-content">
         <p class="value has-text-dark has-text-weight-bold">{{ count1 }}</p>

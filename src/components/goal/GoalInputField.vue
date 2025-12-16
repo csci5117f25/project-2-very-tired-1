@@ -68,12 +68,15 @@ async function updateGoal() {
     </div>
 
     <div class="setting-btn">
-      <button class="button is-small is-white is-outlined" @click="updateGoal">Update</button>
+      <button class="button is-small is-outlined" @click="updateGoal">Update</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+.setting-entry {
+  margin: 0px 20px 0px 20px;
+}
 .setting-label {
   width: 25%;
   font-size: 1.2rem;
@@ -85,7 +88,7 @@ async function updateGoal() {
 }
 
 .setting-input input {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(209, 207, 207, 0.8);
   border: 2px solid transparent;
   border-radius: 20px;
   height: 28px;
@@ -106,5 +109,12 @@ async function updateGoal() {
 
 .setting-btn button {
   font-weight: bold;
+}
+
+@media (prefers-color-scheme: light) {
+  .setting-btn button {
+    border-color: #000;
+    color: #000;
+  }
 }
 </style>
