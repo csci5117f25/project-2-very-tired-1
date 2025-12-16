@@ -278,6 +278,9 @@ const router = useRouter()
   border-radius: 15px;
   padding: 5px;
   margin: 20px;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .progressBar-list {

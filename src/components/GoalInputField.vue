@@ -36,6 +36,9 @@ const uid = computed(() => user.value?.uid)
 
 // --- methods ---
 async function updateGoal() {
+  if (!/^\d+$/.test(count.value) || count.value === 0) {
+    return
+  }
   try {
     const goalRef = doc(db, 'users', uid.value, 'goals', props.type)
 
@@ -84,6 +87,7 @@ async function updateGoal() {
   text-align: center;
   width: 90%;
   transition: border 0.2s ease;
+  font-size: 17px;
 }
 
 .setting-input input:focus {
