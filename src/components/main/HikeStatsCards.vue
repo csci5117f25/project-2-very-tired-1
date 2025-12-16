@@ -1,5 +1,5 @@
 <script setup>
-import { useHikeFormatters } from '../composables/useHikeFormatters'
+import { useHikeFormatters } from '../../composables/useHikeFormatters'
 
 defineProps({
   hike: {

@@ -101,12 +101,12 @@ const goToDay = (day) => {
 </script>
 
 <template>
-  <div class="wrapper box has-background-primary">
+  <div class="wrapper box">
     <header>
       <h1 class="title is-5">{{ monthName }}</h1>
     </header>
     <div class="body">
-      <ul class="weekdays has-text-primary-light">
+      <ul class="weekdays">
         <li>Sun</li>
         <li>Mon</li>
         <li>Tue</li>
@@ -154,7 +154,8 @@ ul {
 
 .weekdays {
   text-decoration: underline;
-  font-weight: bold;
+  font-size: 1rem;
+  color: var(--bulma-text-70-bold);
 }
 
 li {
@@ -191,7 +192,7 @@ li {
   overflow: hidden;
 }
 .isToday p {
-  border: 2px solid var(--bulma-dark);
+  border: 2px solid black;
 }
 .dates p.inactive {
   border: none;
@@ -209,9 +210,9 @@ li {
   height: 100%;
 }
 
-@media (prefers-color-scheme: light) {
-  .dates p.hasHikes {
-    color: white;
+@media (prefers-color-scheme: dark) {
+  .isToday p {
+    border: 2px solid rgb(199, 197, 197);
   }
 }
 </style>

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const startHike = () => {
-  router.push('/startHike')
+  router.push('/goals')
 }
 </script>
 
@@ -13,11 +13,11 @@ const startHike = () => {
     <div class="card-content">
       <div class="content-wrapper">
         <div class="icon-wrapper">
-          <img src="/icons/hiker.svg" alt="Start Hike" class="hiker-icon" />
+          <img src="/icons/goal.svg" alt="Goal" class="goal-icon" />
         </div>
         <div class="text-wrapper">
-          <p class="has-text-weight-extrabold is-size-4">Start Hike</p>
-          <p class="subtitle is-size-6">Record your adventure</p>
+          <p class="text-name has-text-weight-extrabold is-size-4">Goal</p>
+          <p class="text-description subtitle is-size-6">Reach New Heights</p>
         </div>
       </div>
     </div>
@@ -57,12 +57,34 @@ const startHike = () => {
   display: flex;
 }
 
-.hiker-icon {
+.goal-icon {
   width: 32px;
   height: 32px;
 }
 
 .text-wrapper {
   flex: 1;
+}
+
+@media (max-width: 500px) {
+  .card-content {
+    height: 100%;
+    padding: 5px;
+    display: flex;
+  }
+  .content-wrapper {
+    gap: 10px;
+  }
+  .goal-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .text-name {
+    font-size: 1.2rem !important;
+  }
+
+  .text-description {
+    font-size: 0.9rem !important;
+  }
 }
 </style>

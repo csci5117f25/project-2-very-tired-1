@@ -4,13 +4,13 @@ import { ref, computed } from 'vue'
 import { useGoals } from '@/composables/useGoals'
 import { useHikesRange } from '@/composables/useHikesRange'
 import { useAuth } from '@/composables/useAuth'
-import ProgressBar from '@/components/ProgressBar.vue'
+import ProgressBar from '@/components/goal/ProgressBar.vue'
 import { useUserData } from '@/composables/useUserData'
 import BackButton from '@/components/BackButton.vue'
-import LongGoalCard from '@/components/LongGoalCard.vue'
-import GoalCard from '@/components/GoalCard.vue'
-import GoalInputField from '@/components/GoalInputField.vue'
-import ProfilePic from '@/components/ProfilePic.vue'
+import LongGoalCard from '@/components/goal/LongGoalCard.vue'
+import GoalCard from '@/components/goal/GoalCard.vue'
+import GoalInputField from '@/components/goal/GoalInputField.vue'
+import ProfilePic from '@/components/main/ProfilePic.vue'
 import { useRouter } from 'vue-router'
 
 // --- constants: progress bar colors ---
@@ -146,15 +146,15 @@ const router = useRouter()
     <div class="overview">
       <LongGoalCard
         class="long-card"
-        :count1="Math.floor(Number(userData.totalDistance / 1000) * 100)"
+        :count1="Math.floor(Number(userData.totalDistance / 1000))"
         :count2="Math.floor(Number(userData.totalElevation))"
       >
         <template #svg1>
-          <b-icon icon="shoe-print" size="is-large" type="is-dark"></b-icon>
+          <b-icon icon="shoe-print" size="is-large" class="has-text"></b-icon>
         </template>
 
         <template #svg2>
-          <b-icon icon="stairs" size="is-large" type="is-dark"></b-icon>
+          <b-icon icon="stairs" size="is-large" class="has-text"></b-icon>
         </template>
       </LongGoalCard>
 
@@ -164,11 +164,11 @@ const router = useRouter()
       </div>
     </div>
 
-    <div class="goal has-background-primary">
+    <div class="goal">
       <h2 class="label">{{ goals?.type.charAt(0).toUpperCase() + goals?.type.slice(1) }} Goals</h2>
       <div class="progressBar-list">
         <div class="nav-btn" @click="previous">
-          <b-icon icon="chevron-left" size="is-medium" type="is-dark"></b-icon>
+          <b-icon icon="chevron-left" size="is-medium" class="has-text"></b-icon>
         </div>
 
         <ProgressBar
@@ -196,7 +196,7 @@ const router = useRouter()
         />
 
         <div class="nav-btn" @click="next">
-          <b-icon icon="chevron-right" size="is-medium" type="is-dark"></b-icon>
+          <b-icon icon="chevron-right" size="is-medium"></b-icon>
         </div>
       </div>
 

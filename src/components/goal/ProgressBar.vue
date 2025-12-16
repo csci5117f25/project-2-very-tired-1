@@ -19,6 +19,7 @@ const percent = computed(() => {
     <div class="progress-wrapper">
       <svg viewBox="0 0 120 120">
         <circle
+          class="inner-ring"
           stroke="rgba(255, 255, 255, 0.3)"
           stroke-width="10"
           fill="transparent"
@@ -95,5 +96,9 @@ const percent = computed(() => {
 .units {
   color: v-bind(color);
   font-weight: 500;
+}
+
+.inner-ring {
+  fill: var(--bulma-primary);
 }
 </style>
