@@ -160,8 +160,9 @@ const currentPhoto = computed(() => {
 }
 
 .content-card {
-  border: 2px solid var(--bulma-border);
-  border-radius: 15px;
+  border: var(--card-border);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
   background: var(--bulma-background);
 }

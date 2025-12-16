@@ -16,8 +16,8 @@ const startHike = () => {
           <img src="/icons/goal.svg" alt="Goal" class="goal-icon" />
         </div>
         <div class="text-wrapper">
-          <p class="text-name has-text-weight-extrabold is-size-4">Goal</p>
-          <p class="text-description subtitle is-size-6">Reach New Heights</p>
+          <p class="text-name has-text-weight-extrabold is-size-4">Goals</p>
+          <p class="text-description subtitle is-size-6">Reach new heights</p>
         </div>
       </div>
     </div>

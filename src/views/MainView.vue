@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore'
+import { collection, query, orderBy, getDocs, limit, where } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import { db } from '@/firebase_conf'
 import ProfilePic from '@/components/main/ProfilePic.vue'
@@ -21,7 +21,11 @@ const uid = computed(() => user.value?.uid)
 // Fetch all hikes
 const hikesQuery = computed(() => {
   if (!uid.value) return null
-  return query(collection(db, 'users', uid.value, 'hikes'), orderBy('startedAt', 'desc'))
+  return query(
+    collection(db, 'users', uid.value, 'hikes'),
+    where('status', '==', 'completed'),
+    orderBy('startedAt', 'desc'),
+  )
 })
 
 const hikes = useCollection(hikesQuery)

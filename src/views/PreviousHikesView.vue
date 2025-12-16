@@ -57,11 +57,16 @@ async function fetchHikes() {
     const hikesQuery = paramsExist.value
       ? query(
           collection(db, 'users', uid.value, 'hikes'),
+          where('status', '==', 'completed'),
           where('createdAt', '>=', startOfDay.value),
           where('createdAt', '<=', endOfDay.value),
           orderBy('createdAt', 'desc'),
         )
-      : query(collection(db, 'users', uid.value, 'hikes'), orderBy('createdAt', 'desc'))
+      : query(
+          collection(db, 'users', uid.value, 'hikes'),
+          where('status', '==', 'completed'),
+          orderBy('createdAt', 'desc'),
+        )
 
     const snapshot = await getDocs(hikesQuery)
 

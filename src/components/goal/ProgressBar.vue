@@ -96,9 +96,10 @@ const percent = computed(() => {
 .units {
   color: v-bind(color);
   font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .inner-ring {
-  fill: var(--bulma-primary);
+  stroke: rgba(209, 207, 207, 0.8);
 }
 </style>
