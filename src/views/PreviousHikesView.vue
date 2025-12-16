@@ -4,10 +4,10 @@ import { getStorage, ref as storageRef, deleteObject } from 'firebase/storage'
 import { db } from '@/firebase_conf'
 import { useRoute, useRouter } from 'vue-router'
 import { computed, ref, onMounted, watch, nextTick } from 'vue'
-import PreviousHikesCard from '@/components/PreviousHikesCard.vue'
+import PreviousHikesCard from '@/components/main/PreviousHikesCard.vue'
 import { useAuth } from '@/composables/useAuth'
 import BackButton from '@/components/BackButton.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import LoadingSpinner from '@/components/main/LoadingSpinner.vue'
 
 const { user } = useAuth()
 const uid = computed(() => user.value?.uid)

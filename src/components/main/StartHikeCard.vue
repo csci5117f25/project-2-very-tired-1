@@ -16,8 +16,8 @@ const startHike = () => {
           <img src="/icons/hiker.svg" alt="Start Hike" class="hiker-icon" />
         </div>
         <div class="text-wrapper">
-          <p class="has-text-weight-extrabold is-size-4">Start Hike</p>
-          <p class="subtitle is-size-6">Record your adventure</p>
+          <p class="text-name has-text-weight-extrabold is-size-4">Start Hike</p>
+          <p class="text-description subtitle is-size-6">Record your adventure</p>
         </div>
       </div>
     </div>
@@ -64,5 +64,27 @@ const startHike = () => {
 
 .text-wrapper {
   flex: 1;
+}
+
+@media (max-width: 500px) {
+  .card-content {
+    height: 100%;
+    padding: 5px;
+    display: flex;
+  }
+  .content-wrapper {
+    gap: 10px;
+  }
+  .hiker-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .text-name {
+    font-size: 1.2rem !important;
+  }
+
+  .text-description {
+    font-size: 0.9rem !important;
+  }
 }
 </style>

@@ -10,7 +10,7 @@ import HikeContentCard from '../components/HikeContentCard.vue'
 import PhotoModal from '../components/PhotoModal.vue'
 import { useAuth } from '../composables/useAuth'
 import { useHikeFormatters } from '../composables/useHikeFormatters'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import LoadingSpinner from '@/components/main/LoadingSpinner.vue'
 
 const route = useRoute()
 const { user } = useAuth()

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import HikeStatsCard from '../components/HikeStatsCards.vue'
+import HikeStatsCard from './main/HikeStatsCards.vue'
 import HikePhotoCard from '../components/HikePhotoCard.vue'
 import { useHikeFormatters } from '../composables/useHikeFormatters'
 

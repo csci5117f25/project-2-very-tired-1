@@ -1,7 +1,7 @@
 <script setup>
 // --- imports ---
 import { ref, onMounted, nextTick } from 'vue'
-import MonthlyCalendar from '@/components/MonthlyCalendar.vue'
+import MonthlyCalendar from '@/components/calendar/MonthlyCalendar.vue'
 import { useRouter, useRoute } from 'vue-router'
 
 // --- router ---

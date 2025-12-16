@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useWindowSize } from '@vueuse/core'
 import TrailLine from '@/components/TrailLine.vue'
-import { useHikeFormatters } from '../composables/useHikeFormatters'
+import { useHikeFormatters } from '../../composables/useHikeFormatters'
 
 const router = useRouter()
 
@@ -76,7 +76,11 @@ const { formatTime, formatDistance, formatDuration } = useHikeFormatters()
         <p class="title is-5">{{ name || '--' }}</p>
         <p class="subtitle is-5">{{ formatTime(datetime) }}</p>
 
-        <div v-if="showTrailInContent && hasTrailData" class="compact-trail-container" :class="{ 'compact-trail-small': isSmallScreen }">
+        <div
+          v-if="showTrailInContent && hasTrailData"
+          class="compact-trail-container"
+          :class="{ 'compact-trail-small': isSmallScreen }"
+        >
           <TrailLine
             :points="trail"
             :width="isSmallScreen ? 100 : 160"
@@ -87,7 +91,7 @@ const { formatTime, formatDistance, formatDuration } = useHikeFormatters()
           />
         </div>
 
-        <div v-if="showTrailInContent" style="flex: 1;"></div>
+        <div v-if="showTrailInContent" style="flex: 1"></div>
 
         <div class="columns is-mobile info-container">
           <div class="column has-text-centered">
@@ -102,9 +106,9 @@ const { formatTime, formatDistance, formatDuration } = useHikeFormatters()
       </div>
     </template>
     <div v-else-if="!isLoading" class="card-content card-content-empty card-content-with-trail">
-      <div style="flex: 1;"></div>
+      <div style="flex: 1"></div>
       <p class="title is-5">No Previous Hikes</p>
-      <div style="flex: 1;"></div>
+      <div style="flex: 1"></div>
     </div>
     <div v-else class="card-content card-content-with-trail">
       <!-- Loading state - empty div to maintain card size -->
