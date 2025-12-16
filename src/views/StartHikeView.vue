@@ -206,7 +206,6 @@ onMounted(async () => {
     distanceMeters.value = existingHike.distanceMeters || 0
     elevationGainMeters.value = existingHike.elevationGainMeters || 0
     hikeName.value = existingHike.name || ''
-    console.log('Loaded in-progress hike:', hikeId.value)
 
     // Prime Kalman filters with last known position for smooth continuation
     if (trail.value.length > 0) {
@@ -281,9 +280,6 @@ watch(
 
     // Filter out low-accuracy readings (WiFi/cell tower triangulation)
     if (typeof c.accuracy === 'number' && c.accuracy > ACCURACY_THRESHOLD) {
-      console.log(
-        `Skipping low-accuracy reading: ${c.accuracy}m (threshold: ${ACCURACY_THRESHOLD}m)`,
-      )
       return
     }
 

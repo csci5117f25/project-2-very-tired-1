@@ -8,7 +8,6 @@ const props = defineProps({
 })
 
 const srcToUse = props.src
-console.log(props.src)
 </script>
 
 <template>
