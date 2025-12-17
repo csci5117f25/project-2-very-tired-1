@@ -53,23 +53,23 @@ TrailLens is a website for tracking hikes and viewing your previous hikes. Our m
 ## Screenshots of Site (complete)
 
 ### Home Screen
-![](readme-photos/image.png)
+![](image.png)
 ### Start Hike (Main View)
-![](readme-photos/image-1.png)
+![](image-1.png)
 ### Start Hike (Camera Preview)
-![](readme-photos/image-2.png)
+![](image-2.png)
 ### Start Hike (w/Photo Carousel)
-![](readme-photos/image-3.png)
+![](image-3.png)
 ### Previous Hikes
-![](readme-photos/image-4.png)
+![](image-4.png)
 ### Individual Hike
-![](readme-photos/image-5.png)
+![](image-5.png)
 ### Individual Hike (w/Photo)
-![](readme-photos/image-6.png)
+![](image-6.png)
 ### Calendar
-![](readme-photos/image-7.png)
+![](image-7.png)
 ### Goals
-![](readme-photos/image-8.png)
+![](image-8.png)
 
 ## External Dependencies
 
