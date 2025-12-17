@@ -29,7 +29,7 @@ const startHike = () => {
   overflow: hidden;
   border: var(--card-border);
   border-radius: var(--card-border-radius);
-  height: 50%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: var(--card-shadow);
@@ -39,6 +39,7 @@ const startHike = () => {
 }
 
 .card-content {
+  height: 100%;
   padding: 14px;
   display: flex;
 }
@@ -68,6 +69,8 @@ const startHike = () => {
 @media (max-width: 500px) {
   .card-content {
     padding: 5px;
+    height: 100%;
+    display: flex;
   }
   .content-wrapper {
     gap: 10px;
