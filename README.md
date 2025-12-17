@@ -21,20 +21,21 @@ CSCI 5117, Fall 2025, [assignment description](https://canvas.umn.edu/courses/51
 **Describe the most challenging features you implemented
 (one sentence per bullet, maximum 4 bullets):**
 
-- Trail line implementation.
+- Trail line implementation (figuring out accuracy, smoothing, and drawing the line).
 - Real-time weather api data and logic for location based updates to the weather widget.
-- Goals implementation.
-- Hiking photos linking to locations within the recorded trail line.
+- Goals and calendar implementation (figuring out cutoffs for goals and proper formatting of dates).
+- Camera integration in the hike and ensuring it was smooth and seemless.
 
 Which (if any) device integration(s) does your app support?
 
-- Device location(GPS) for real time trail recording and for location based weather updates
+- Geolocation (GPS)
+- Camera integration
+- Offline mode - if you lose signal for a period of time (typically you only have connection at beginning of trail head) the web app will continue attempting the requests until you have signal again (typically when you finish the hike at the trail head).
 
 Which (if any) progressive web app feature(s) does your app support?
 
-- Geolocation
-- Camera
-- ...
+- All minimal PWA features (icons)
+- Basic caching of the web app (load even when offline)
 
 ## Mockup images
 
@@ -45,25 +46,36 @@ TrailLens is a website for tracking hikes and viewing your previous hikes. Our m
 
 **Is there anything special we need to know in order to effectively test your app? (optional):**
 
-- The Start Hike page requries the app to remain open to enable the real time trail line updates.
+- The Start Hike page requries the app to remain open to enable the real time trail line updates. This is a limitation of web app's, if we did this as a Native Mobile App we would not have this limitation.
+- You can use the [Sensors tab](https://developer.chrome.com/docs/devtools/sensors) in Chrome to simulate your GPS without having to use your phone. Make sure you set the accuracy to 20 or below because we use this to filter out "bad data".
+- There may be issues with the weather widget because chrome "forgets" it allowed the application to use the location and blocks the location request because it want's the user to be reprompted even when you've already granted it location access. This is rare, but can happen time to time, we fixed it by going into Chrome Developer Settings and deleting the site as allowed location accessing website and refreshing.
 
 ## Screenshots of Site (complete)
 
-**[Add a screenshot of each key page](https://stackoverflow.com/questions/10189356/how-to-add-screenshot-to-readmes-in-github-repository)
-along with a very brief caption:**
-
-![](https://media.giphy.com/media/o0vwzuFwCGAFO/giphy.gif)
+### Home Screen
+![](readme-photos/image.png)
+### Start Hike (Main View)
+![](readme-photos/image-1.png)
+### Start Hike (Camera Preview)
+![](readme-photos/image-2.png)
+### Start Hike (w/Photo Carousel)
+![](readme-photos/image-3.png)
+### Previous Hikes
+![](readme-photos/image-4.png)
+### Individual Hike
+![](readme-photos/image-5.png)
+### Individual Hike (w/Photo)
+![](readme-photos/image-6.png)
+### Calendar
+![](readme-photos/image-7.png)
+### Goals
+![](readme-photos/image-8.png)
 
 ## External Dependencies
 
-**Document integrations with 3rd Party code or services here.
-Please do not document required libraries (e.g., VUE, Firebase, vuefire).**
-
-- Library or service name: description of use
 - https://www.weather.gov/documentation/services-web-api : weather api used to pull real-time data from tower observations and forecasts.
 
 **If there's anything else you would like to disclose about how your project
 relied on external code, expertise, or anything else, please disclose that
 here:**
-
-...
+External code references are commented within the code
