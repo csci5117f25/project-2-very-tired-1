@@ -4,40 +4,37 @@ CSCI 5117, Fall 2025, [assignment description](https://canvas.umn.edu/courses/51
 
 ## App Info:
 
-* Team Name: Very Tired
-* App Name: TrailLens
-* App Link: <https://very-tired-project-2.web.app/>
-* LucidSpark: <https://lucid.app/lucidspark/efbdc8f9-d48d-4787-b2c0-7fa831dff212/edit?invitationId=inv_b3eeaf56-86ec-49b5-be63-04101f93399b>
+- Team Name: Very Tired
+- App Name: TrailLens
+- App Link: <https://very-tired-project-2.web.app/>
+- LucidSpark: <https://lucid.app/lucidspark/efbdc8f9-d48d-4787-b2c0-7fa831dff212/edit?invitationId=inv_b3eeaf56-86ec-49b5-be63-04101f93399b>
 
 ### Students
 
-* Alex Knusel, knuse001@umn.edu
-* Sam Bassan, bassa050@umn.edu
-* Shuo Jiang, jian1105@umn.edu
-* David Tomlinson, tomli104@d.umn.edu
-
+- Alex Knusel, knuse001@umn.edu
+- Sam Bassan, bassa050@umn.edu
+- Shuo Jiang, jian1105@umn.edu
+- David Tomlinson, tomli104@d.umn.edu
 
 ## Key Features
 
 **Describe the most challenging features you implemented
 (one sentence per bullet, maximum 4 bullets):**
 
-* Trail line implementation.
-* Real-time weather api data and logic for location based updates to the weather widget.
-* Goals implementation.
-* Hiking photos linking to locations within the recorded trail line.
+- Trail line implementation.
+- Real-time weather api data and logic for location based updates to the weather widget.
+- Goals implementation.
+- Hiking photos linking to locations within the recorded trail line.
 
 Which (if any) device integration(s) does your app support?
 
-* ...
+- Device location(GPS) for real time trail recording and for location based weather updates
 
 Which (if any) progressive web app feature(s) does your app support?
 
-* Geolocation
-* Camera
-* ...
-
-
+- Geolocation
+- Camera
+- ...
 
 ## Mockup images
 
@@ -48,9 +45,7 @@ TrailLens is a website for tracking hikes and viewing your previous hikes. Our m
 
 **Is there anything special we need to know in order to effectively test your app? (optional):**
 
-* ...
-
-
+- The Start Hike page requries the app to remain open to enable the real time trail line updates.
 
 ## Screenshots of Site (complete)
 
@@ -59,15 +54,13 @@ along with a very brief caption:**
 
 ![](https://media.giphy.com/media/o0vwzuFwCGAFO/giphy.gif)
 
-
-
 ## External Dependencies
 
 **Document integrations with 3rd Party code or services here.
 Please do not document required libraries (e.g., VUE, Firebase, vuefire).**
 
-* Library or service name: description of use
-* https://www.weather.gov/documentation/services-web-api : weather api used to pull real-time data from tower observations and forecasts.
+- Library or service name: description of use
+- https://www.weather.gov/documentation/services-web-api : weather api used to pull real-time data from tower observations and forecasts.
 
 **If there's anything else you would like to disclose about how your project
 relied on external code, expertise, or anything else, please disclose that
