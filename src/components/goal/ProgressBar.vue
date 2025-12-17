@@ -43,7 +43,7 @@ const percent = computed(() => {
         />
       </svg>
       <div class="progress-text">
-        <h3 class="has-text-dark">
+        <h3>
           {{ current }}<span>/{{ target }}</span>
         </h3>
         <h4 class="units">{{ unit.toUpperCase() }}</h4>
