@@ -22,7 +22,10 @@ CSCI 5117, Fall 2025, [assignment description](https://canvas.umn.edu/courses/51
 **Describe the most challenging features you implemented
 (one sentence per bullet, maximum 4 bullets):**
 
-* ...
+* Trail line implementation.
+* Real-time weather api data and logic for location based updates to the weather widget.
+* Goals implementation.
+* Hiking photos linking to locations within the recorded trail line.
 
 Which (if any) device integration(s) does your app support?
 
@@ -30,6 +33,8 @@ Which (if any) device integration(s) does your app support?
 
 Which (if any) progressive web app feature(s) does your app support?
 
+* Geolocation
+* Camera
 * ...
 
 
@@ -62,7 +67,7 @@ along with a very brief caption:**
 Please do not document required libraries (e.g., VUE, Firebase, vuefire).**
 
 * Library or service name: description of use
-* ...
+* https://www.weather.gov/documentation/services-web-api : weather api used to pull real-time data from tower observations and forecasts.
 
 **If there's anything else you would like to disclose about how your project
 relied on external code, expertise, or anything else, please disclose that
